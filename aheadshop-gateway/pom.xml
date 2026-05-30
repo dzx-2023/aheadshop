@@ -39,12 +39,6 @@
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
         </dependency>
 
-        <!-- Bootstrap 配置支持 -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-bootstrap</artifactId>
-        </dependency>
-
         <!-- Sentinel 限流（网关专用） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
