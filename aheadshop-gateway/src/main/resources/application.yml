@@ -1,0 +1,95 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: aheadshop-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+    gateway:
+      routes:
+        # 用户服务
+        - id: user-service
+          uri: lb://aheadshop-user
+          predicates:
+            - Path=/api/user/**
+
+        # 商品服务
+        - id: product-service
+          uri: lb://aheadshop-product
+          predicates:
+            - Path=/api/product/**
+
+        # 购物车服务
+        - id: cart-service
+          uri: lb://aheadshop-cart
+          predicates:
+            - Path=/api/cart/**
+
+        # 订单服务
+        - id: order-service
+          uri: lb://aheadshop-order
+          predicates:
+            - Path=/api/order/**
+
+        # 支付服务
+        - id: pay-service
+          uri: lb://aheadshop-pay
+          predicates:
+            - Path=/api/pay/**
+
+        # 搜索服务
+        - id: search-service
+          uri: lb://aheadshop-search
+          predicates:
+            - Path=/api/search/**
+
+        # 管理后台聚合
+        - id: admin-service
+          uri: lb://aheadshop-admin
+          predicates:
+            - Path=/api/admin/**
+
+      # 默认过滤器
+      default-filters:
+        - DedupeResponseHeader=Vary Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+  config:
+    import: nacos:aheadshop-gateway.yml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      password: 123456
+
+# 网关自定义配置
+gateway:
+  jwt:
+    secret: aheadshop-plus-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
+    # 白名单路径（Ant 风格）
+    whitelist:
+      - /api/user/login
+      - /api/user/register
+      - /api/user/sms-code
+      - /api/product/detail/**
+      - /api/product/category/**
+      - /api/product/list
+      - /api/search/**
+  rate-limit:
+    # 每秒允许的请求数
+    rate: 50
+    # 滑动窗口大小（秒）
+    window: 1
+
+logging:
+  level:
+    com.aheadshop.gateway: debug
+    org.springframework.cloud.gateway: info
