@@ -16,7 +16,21 @@ spring:
         file-extension: yaml
     gateway:
       routes:
-        # 用户服务
+        # 用户服务 Knife4j 文档（白名单，不鉴权）
+        - id: user-doc
+          uri: lb://aheadshop-user
+          predicates:
+            - Path=/user/doc.html,/user/webjars/**,/user/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # 用户服务接口（通过 Knife4j 文档调试时走这条路由）
+        - id: user-api
+          uri: lb://aheadshop-user
+          predicates:
+            - Path=/user/**
+
+        # 用户服务接口（前端正式请求走 /api/user/**）
         - id: user-service
           uri: lb://aheadshop-user
           predicates:
@@ -79,10 +93,16 @@ gateway:
       - /api/user/login
       - /api/user/register
       - /api/user/sms-code
+      - /user/login
+      - /user/register
+      - /user/sms-code
       - /api/product/detail/**
       - /api/product/category/**
       - /api/product/list
       - /api/search/**
+      - /user/doc.html
+      - /user/webjars/**
+      - /user/v3/api-docs/**
   rate-limit:
     # 每秒允许的请求数
     rate: 50

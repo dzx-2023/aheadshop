@@ -1,7 +1,7 @@
 package com.aheadshop.gateway.filter;
 
+import com.aheadshop.gateway.config.GatewayConfig;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -25,12 +25,7 @@ import java.util.List;
 public class RateLimitFilter implements GlobalFilter, Ordered {
 
     private final ReactiveStringRedisTemplate redisTemplate;
-
-    @Value("${gateway.rate-limit.rate:50}")
-    private int rate;
-
-    @Value("${gateway.rate-limit.window:1}")
-    private int window;
+    private final GatewayConfig gatewayConfig;
 
     /**
      * Lua 滑动窗口限流脚本
@@ -57,8 +52,9 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
 
     private static final RedisScript<Long> SCRIPT = RedisScript.of(LUA_SCRIPT, Long.class);
 
-    public RateLimitFilter(ReactiveStringRedisTemplate redisTemplate) {
+    public RateLimitFilter(ReactiveStringRedisTemplate redisTemplate, GatewayConfig gatewayConfig) {
         this.redisTemplate = redisTemplate;
+        this.gatewayConfig = gatewayConfig;
     }
 
     @Override
@@ -75,10 +71,10 @@ public class RateLimitFilter implements GlobalFilter, Ordered {
         String key = "rate_limit:" + clientIp + ":" + path;
 
         long now = System.currentTimeMillis();
-        long windowMillis = window * 1000L;
+        long windowMillis = gatewayConfig.getRateLimit().getWindow() * 1000L;
 
         return redisTemplate.execute(SCRIPT, List.of(key),
-                        Arrays.asList(String.valueOf(windowMillis), String.valueOf(rate), String.valueOf(now)))
+                        Arrays.asList(String.valueOf(windowMillis), String.valueOf(gatewayConfig.getRateLimit().getRate()), String.valueOf(now)))
                 .next()
                 .flatMap(result -> {
                     if (result != null && result == 1L) {

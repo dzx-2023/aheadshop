@@ -1,9 +1,10 @@
 package com.aheadshop.gateway.filter;
 
+import com.aheadshop.gateway.config.GatewayConfig;
 import com.aheadshop.gateway.util.JwtUtil;
 import io.jsonwebtoken.Claims;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -23,12 +24,11 @@ import java.util.List;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class AuthGlobalFilter implements GlobalFilter, Ordered {
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    @Value("${gateway.jwt.whitelist:}")
-    private List<String> whitelist;
+    private final GatewayConfig gatewayConfig;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -73,7 +73,8 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
     }
 
     private boolean isWhitelist(String path) {
-        if (whitelist == null) return false;
+        List<String> whitelist = gatewayConfig.getJwt().getWhitelist();
+        if (whitelist == null || whitelist.isEmpty()) return false;
         return whitelist.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
 

@@ -2,17 +2,17 @@ package com.aheadshop.gateway.config;
 
 import com.aheadshop.gateway.util.JwtUtil;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class JwtInitConfig {
 
-    @Value("${gateway.jwt.secret}")
-    private String secret;
+    private final GatewayConfig gatewayConfig;
 
     @PostConstruct
     public void init() {
-        JwtUtil.init(secret);
+        JwtUtil.init(gatewayConfig.getJwt().getSecret());
     }
 }
