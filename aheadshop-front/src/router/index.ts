@@ -10,51 +10,58 @@ const routes: RouteRecordRaw[] = [
       {
         path: '',
         name: 'Home',
-        component: () => import('@/views/Home.vue'),
+        component: () => import('@/views/home/index.vue'),
       },
       {
         path: 'product/:id',
         name: 'ProductDetail',
-        component: () => import('@/views/ProductDetail.vue'),
+        component: () => import('@/views/product/index.vue'),
       },
       {
         path: 'cart',
         name: 'Cart',
-        component: () => import('@/views/Cart.vue'),
+        component: () => import('@/views/cart/index.vue'),
+        meta: { requiresAuth: true },
       },
       {
         path: 'order',
         name: 'OrderList',
-        component: () => import('@/views/OrderList.vue'),
+        component: () => import('@/views/order/OrderList.vue'),
+        meta: { requiresAuth: true },
       },
       {
         path: 'order/:orderNo',
         name: 'OrderDetail',
-        component: () => import('@/views/OrderDetail.vue'),
+        component: () => import('@/views/order/OrderDetail.vue'),
+        meta: { requiresAuth: true },
       },
       {
         path: 'user',
         name: 'User',
-        component: () => import('@/views/User.vue'),
+        component: () => import('@/views/user/index.vue'),
+        meta: { requiresAuth: true },
       },
     ],
   },
-  // 登录 / 注册（无布局）
+  // 登录 / 注册（无布局，已登录不可访问）
   {
     path: '/login',
     name: 'Login',
-    component: () => import('@/views/Login.vue'),
+    component: () => import('@/views/user/Login.vue'),
+    meta: { guestOnly: true },
   },
   {
     path: '/register',
     name: 'Register',
-    component: () => import('@/views/Register.vue'),
+    component: () => import('@/views/user/Register.vue'),
+    meta: { guestOnly: true },
   },
   // 后台管理（AdminLayout）
   {
     path: '/admin',
     component: () => import('@/layouts/AdminLayout.vue'),
     redirect: '/admin/dashboard',
+    meta: { requiresAuth: true },
     children: [
       {
         path: 'dashboard',
@@ -90,6 +97,23 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior: () => ({ top: 0 }),
+})
+
+// 路由守卫
+router.beforeEach((to, _from, next) => {
+  const token = localStorage.getItem('token')
+
+  if (to.meta.requiresAuth && !token) {
+    next({ path: '/login', query: { redirect: to.fullPath } })
+    return
+  }
+
+  if (to.meta.guestOnly && token) {
+    next({ path: '/' })
+    return
+  }
+
+  next()
 })
 
 export default router

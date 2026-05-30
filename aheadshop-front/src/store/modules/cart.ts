@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import request from '@/utils/request'
+import request from '@/api/request'
 
 export const useCartStore = defineStore('cart', () => {
   const count = ref(0)

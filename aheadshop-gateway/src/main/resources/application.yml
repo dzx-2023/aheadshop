@@ -35,42 +35,56 @@ spring:
           uri: lb://aheadshop-user
           predicates:
             - Path=/api/user/**
+          filters:
+            - StripPrefix=1
 
         # 商品服务
         - id: product-service
           uri: lb://aheadshop-product
           predicates:
             - Path=/api/product/**
+          filters:
+            - StripPrefix=1
 
         # 购物车服务
         - id: cart-service
           uri: lb://aheadshop-cart
           predicates:
             - Path=/api/cart/**
+          filters:
+            - StripPrefix=1
 
         # 订单服务
         - id: order-service
           uri: lb://aheadshop-order
           predicates:
             - Path=/api/order/**
+          filters:
+            - StripPrefix=1
 
         # 支付服务
         - id: pay-service
           uri: lb://aheadshop-pay
           predicates:
             - Path=/api/pay/**
+          filters:
+            - StripPrefix=1
 
         # 搜索服务
         - id: search-service
           uri: lb://aheadshop-search
           predicates:
             - Path=/api/search/**
+          filters:
+            - StripPrefix=1
 
         # 管理后台聚合
         - id: admin-service
           uri: lb://aheadshop-admin
           predicates:
             - Path=/api/admin/**
+          filters:
+            - StripPrefix=1
 
       # 默认过滤器
       default-filters:

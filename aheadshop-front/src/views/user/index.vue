@@ -6,6 +6,6 @@
 </template>
 
 <script setup lang="ts">
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/store/modules/user'
 const userStore = useUserStore()
 </script>
