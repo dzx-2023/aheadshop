@@ -64,6 +64,11 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         String userId = claims.getSubject();
         String role = claims.get("role", String.class);
 
+        // 管理端接口要求 ADMIN 角色
+        if (path.startsWith("/api/admin/") && !"ADMIN".equals(role)) {
+            return forbidden(exchange, "需要管理员权限");
+        }
+
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header("X-User-Id", userId != null ? userId : "")
                 .header("X-User-Role", role != null ? role : "")
@@ -83,6 +88,15 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         String body = String.format("{\"code\":401,\"msg\":\"%s\",\"data\":null}", message);
+        DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+        return response.writeWith(Mono.just(buffer));
+    }
+
+    private Mono<Void> forbidden(ServerWebExchange exchange, String message) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.setStatusCode(HttpStatus.FORBIDDEN);
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        String body = String.format("{\"code\":403,\"msg\":\"%s\",\"data\":null}", message);
         DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(buffer));
     }

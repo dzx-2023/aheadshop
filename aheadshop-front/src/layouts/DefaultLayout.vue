@@ -13,7 +13,7 @@
           <router-link to="/" class="nav-link" :class="{ active: route.path === '/' }">
             首页
           </router-link>
-          <a class="nav-link" href="#">商品分类</a>
+          <router-link to="/category" class="nav-link" :class="{ active: route.path.startsWith('/category') }">商品分类</router-link>
           <div class="search-box">
             <el-input
               v-model="searchQuery"

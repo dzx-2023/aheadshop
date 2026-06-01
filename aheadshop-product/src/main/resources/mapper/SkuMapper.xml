@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aheadshop.product.mapper.SkuMapper">
+
+    <!-- 乐观锁扣库存：stock >= quantity 才能扣 -->
+    <update id="lockStock">
+        UPDATE sku
+        SET stock = stock - #{quantity},
+            locked_stock = locked_stock + #{quantity}
+        WHERE id = #{skuId} AND stock >= #{quantity} AND deleted = 0
+    </update>
+
+    <!-- 释放库存 -->
+    <update id="unlockStock">
+        UPDATE sku
+        SET stock = stock + #{quantity},
+            locked_stock = locked_stock - #{quantity}
+        WHERE id = #{skuId} AND deleted = 0
+    </update>
+
+    <!-- 确认扣减（支付成功后 locked_stock 减少） -->
+    <update id="confirmDeduct">
+        UPDATE sku
+        SET locked_stock = locked_stock - #{quantity}
+        WHERE id = #{skuId} AND deleted = 0
+    </update>
+
+</mapper>

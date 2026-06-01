@@ -38,7 +38,23 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 商品服务
+        # 商品服务 Knife4j 文档（白名单）
+        - id: product-doc
+          uri: lb://aheadshop-product
+          predicates:
+            - Path=/product/doc.html,/product/webjars/**,/product/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # 商品服务接口（Knife4j 调试）
+        - id: product-api
+          uri: lb://aheadshop-product
+          predicates:
+            - Path=/product/**
+          filters:
+            - StripPrefix=1
+
+        # 商品服务接口（前端正式请求）
         - id: product-service
           uri: lb://aheadshop-product
           predicates:
@@ -46,7 +62,23 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 购物车服务
+        # 购物车服务 Knife4j 文档（白名单）
+        - id: cart-doc
+          uri: lb://aheadshop-cart
+          predicates:
+            - Path=/cart/doc.html,/cart/webjars/**,/cart/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # 购物车服务接口（Knife4j 调试）
+        - id: cart-api
+          uri: lb://aheadshop-cart
+          predicates:
+            - Path=/cart/**
+          filters:
+            - StripPrefix=1
+
+        # 购物车服务接口（前端正式请求）
         - id: cart-service
           uri: lb://aheadshop-cart
           predicates:
@@ -107,9 +139,11 @@ gateway:
       - /api/user/login
       - /api/user/register
       - /api/user/sms-code
+      - /api/user/refresh-token
       - /user/login
       - /user/register
       - /user/sms-code
+      - /user/refresh-token
       - /api/product/detail/**
       - /api/product/category/**
       - /api/product/list
@@ -117,6 +151,12 @@ gateway:
       - /user/doc.html
       - /user/webjars/**
       - /user/v3/api-docs/**
+      - /product/doc.html
+      - /product/webjars/**
+      - /product/v3/api-docs/**
+      - /cart/doc.html
+      - /cart/webjars/**
+      - /cart/v3/api-docs/**
   rate-limit:
     # 每秒允许的请求数
     rate: 50

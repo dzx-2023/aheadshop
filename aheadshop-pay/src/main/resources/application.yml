@@ -1,0 +1,48 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: aheadshop-pay
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/aheadshop_pay?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 1551974285
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+  config:
+    import: nacos:aheadshop-pay.yml
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      password: 123456
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 支付宝沙箱配置（需要替换为你自己的）
+alipay:
+  appId: 9021000164627929
+  privateKey: MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCbhf+LW5DFv4bPo7twp60fVaGWJtJBWpZNI0wIchaIEjl3qat70DIoIyjHq+hwQupSOALd/sJwAClLHlHD+cMHTkKgd1EiXXaF0U/eSqo7lWJ8RBGJ1ZsC6AN1QjYMmj2noEzlzcjM5Xp3TXFu9bqnGRt2lS4pqk+ePQRxSUfFnw02HIOCkwvHRRFe+4p9ufTIgbpZA9Aqw4X6sbBos7sBAw/vPu9+FfsaUdqPibEvGA0A4K6CLorRddzi5zLgiwKS67pzjz9nB5jXtnPuxJAdzleV2KHjT9ZrXpMFzN93hPV1qEnYSqeuEDuJ6Nf6ttreoaRW7emy3c9bPxQPZ9ClAgMBAAECggEAchDmq4xd81uVAcfB209v31KL8DfK8BoDsNHZmzwqIGTVd1mfJ3E8yEl5SHFiSqwZdnIUUEPg0gqcPrcfG1CdZUdWAKFihYTtQBqTrKMwlgDrud6mymQ7i/clSiRkxft+iuo8XDQBOZ55ovTO5KYf3xzAEso5kF+Ug6eXEYvAs0TYns9hVGzjgyvoGFmU9PPWT0EMU4PLIP09/Q980j1u4FY6TM5677kn5oXqvfGB9RysNNprFZEAPg7TrP0D4+j7uVnsRdC5Uianuca66RxyjASHeXybLTkMvhMO+7OjeQF1FycQUWgumKp3Yq/qmNZ9N1WjYrDkYGw168WVmbcrBQKBgQD1H+W3pvGie3TlBjDUcERWaDAzyqQXFUo/wc2kHADtukTr+c78AROWyCc9jH1qsqpqBEokSELaiJbS/qzmDUHMfgrNpI/UIRE8Huc1clojTNeD7jO1L96uHUTDXoZtzR8fwqVjvrVg1CcAkpDG7P4ARYrpZ+TEvssQ4st1in7nxwKBgQCibGtG6JZWz0PJU4wsPJxY4igaXj+auNq3kl0GxzFZlUMM2tSNrAla1lW/El/jHLPYpyhEfS+yL4kbTuWAdHr2YcwQw983ydphbX5bIoX2N3dNAr5J0IaKhk+5lC8P+B53mnVGfE0jLznu9EI6mi0eNLZcC7bWaSOAt4CUmcs8MwKBgQCHR/BWt/r5alssHouKYt9ENMINg1OmLajJoSLl5FKa4Mcy2K5kJA/0kkgdztBUt4AXfICSn5LN2r4qekVfvYdH3XQG5EBAmXNSk9eUhqS6gKkcdbTx1RZ3T03o6N0V8jOwKpNuhgzCALP5u+nM73SLH9Y3VJBMCOQ3UINrPmEldwKBgE869gWr9ZI5Hsb5o1n84wOUpp1eNkaiP8bmdcyVpGQfpIqDwMWvEw0lmsRPEUk3Oh/IQqNOMdMIzyfsD5XevBCt2h6ffaa4J3f5MncAWzqlCeQeH3bgapDuPbu4JlDy5uHPDcApaHNuWSNQMXJmvPWMHxy9dh4XQYNLgER81R/zAoGAGc5tp8lM4yEKwT2jsAxE5v5ZQ2LN3dadg+imW4e31U8f5b5pKccNJvP3pFT+bdQMjQewBG4JymhklfdAUcsy/fPYc/8Gjo9MPGREkPjSL8AbKpLSnLLEljcAEgkPzu1miWLMWCcJfx0DPQ/DXXhIggRF1QMKblC02xRLIsMozRM=
+  alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvlZvJEfrfihGxob1e+/r04FnRxg9+8LBBuwIi5SF2mMt8iRU2frXHPLs4sx44EEmRoWvKc44wKek8nkdpeKKcb7cFoG/yvEXq836zaTawa1njJoRMxLTDSqh7mti/B/VTjCaWLKojMPUPIvBQZx1dDrhsH7LpHpk4Y8xud7IaJTck0rcuVq0ZxGtAXWq99xGMkpK13CSu9H8bX+HSMDKkTBJi/FQUgem8USQXg8AH4rzBFAVscXdf+XcCxX3sbnGi1+AH9GUTy+BlZOvurY6xTOxz1QM8KQ6Rb+xOKnlPhAAqt4b74/gqqEeMF9quCFs0j8Z9kS2rBlucxUkb4zqNQIDAQAB
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  return-url: http://localhost:5173/pay/result
+  # todo 内网穿透地址
+  notify-url: http://localhost:8085/pay/callback/alipay
+
+logging:
+  level:
+    com.aheadshop.pay: debug

@@ -1,7 +1,10 @@
 package com.aheadshop.user.service;
 
+import com.aheadshop.common.core.exception.BusinessException;
+import com.aheadshop.common.core.exception.BusinessExceptionCode;
 import com.aheadshop.common.core.util.JwtUtil;
 import com.aheadshop.common.redis.util.CacheService;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -46,5 +49,27 @@ public class AuthService {
     public void removeToken(Long userId) {
         cacheService.delete(TOKEN_PREFIX + userId);
         cacheService.delete(REFRESH_PREFIX + userId);
+    }
+
+    public String[] refreshToken(String refreshToken) {
+        // 1. 解析 refreshToken
+        Claims claims;
+        try {
+            claims = JwtUtil.parseToken(refreshToken);
+        } catch (Exception e) {
+            throw new BusinessException(BusinessExceptionCode.UNAUTHORIZED, "refreshToken 无效");
+        }
+
+        Long userId = Long.parseLong(claims.getSubject());
+        String role = claims.get("role", String.class);
+
+        // 2. 校验 refreshToken 是否与 Redis 中一致
+        Object cached = cacheService.get(REFRESH_PREFIX + userId);
+        if (!refreshToken.equals(cached)) {
+            throw new BusinessException(BusinessExceptionCode.UNAUTHORIZED, "refreshToken 已失效，请重新登录");
+        }
+
+        // 3. 生成新的 token 对
+        return generateTokenPair(userId, role != null ? role : "USER");
     }
 }

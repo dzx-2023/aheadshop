@@ -1,18 +1,18 @@
 import request from './request'
 
 /** 创建订单 */
-export function createOrder(data: { cartItemIds?: number[]; skuId?: number; quantity?: number; addressId: number }) {
+export function createOrder(data: { addressId: number; remark?: string }) {
   return request.post('/order/create', data)
 }
 
 /** 订单列表 */
-export function getOrderList(params?: { page?: number; size?: number; status?: number }) {
+export function getOrderList(params?: { status?: number; pageNum?: number; pageSize?: number }) {
   return request.get('/order/list', { params })
 }
 
 /** 订单详情 */
 export function getOrderDetail(orderNo: string) {
-  return request.get(`/order/${orderNo}`)
+  return request.get(`/order/detail/${orderNo}`)
 }
 
 /** 取消订单 */

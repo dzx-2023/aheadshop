@@ -26,6 +26,15 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 1551974285
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 5MB
+
+# 头像上传配置
+upload:
+  avatar-path: D:/Intelli J IDEA/IDEA 项目/aheadshop-plus/upload/avatar/
+  avatar-url-prefix: http://localhost:8081/avatar/
 
 
 

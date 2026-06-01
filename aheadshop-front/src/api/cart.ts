@@ -20,6 +20,11 @@ export function removeCartItem(skuId: number) {
   return request.delete(`/cart/delete/${skuId}`)
 }
 
+/** 勾选/取消勾选 */
+export function checkCartItem(skuId: number, checked: number) {
+  return request.put(`/cart/check/${skuId}`, null, { params: { checked } })
+}
+
 /** 获取购物车数量 */
 export function getCartCount() {
   return request.get('/cart/count')
