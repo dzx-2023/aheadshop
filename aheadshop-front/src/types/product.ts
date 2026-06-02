@@ -52,6 +52,33 @@ export interface SpuDetail {
   skus: SkuItem[]
 }
 
+/** 品牌 */
+export interface BrandItem {
+  id: number
+  name: string
+  logo: string
+  sortOrder: number
+}
+
+/** SPU 保存/编辑数据 */
+export interface SpuSaveData {
+  name: string
+  subtitle?: string
+  categoryId: number
+  brandId?: number
+  mainImage?: string
+  images?: string
+  detail?: string
+  skus: {
+    skuName: string
+    specs?: string
+    price: number
+    originalPrice?: number
+    stock: number
+    image?: string
+  }[]
+}
+
 /** 商品评价 */
 export interface ReviewItem {
   id: number
@@ -60,7 +87,7 @@ export interface ReviewItem {
   avatar: string
   spuId: number
   skuId: number
-  orderId: number
+  orderNo: string
   score: number
   content: string
   images: string

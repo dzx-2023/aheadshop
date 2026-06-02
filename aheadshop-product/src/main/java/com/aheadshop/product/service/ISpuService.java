@@ -20,7 +20,7 @@ public interface ISpuService extends IService<Spu> {
 
     void offShelf(Long spuId);
 
-    IPage<SpuPageVO> queryPage(String keyword, Long categoryId, Long brandId, int pageNum, int pageSize);
+    IPage<SpuPageVO> queryPage(String keyword, Long categoryId, Long brandId, Integer status, int pageNum, int pageSize);
 
     SpuDetailVO getDetail(Long spuId);
 

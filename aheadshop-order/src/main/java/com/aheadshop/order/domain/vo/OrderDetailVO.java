@@ -19,6 +19,8 @@ public class OrderDetailVO {
     private Integer status;
     private Integer payType;
     private LocalDateTime payTime;
+    private LocalDateTime shipTime;
+    private String trackingNumber;
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;

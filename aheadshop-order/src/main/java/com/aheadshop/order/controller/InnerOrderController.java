@@ -24,14 +24,21 @@ public class InnerOrderController {
 
     @Operation(summary = "根据订单号查询订单")
     @GetMapping("/{orderNo}")
-    public Result<OrderDetailVO> getOrder(@PathVariable String orderNo) {
+    public Result<OrderDetailVO> getOrder(@PathVariable("orderNo") String orderNo) {
         return Result.success(orderService.getOrderByOrderNo(orderNo));
     }
 
     @Operation(summary = "支付成功更新状态")
     @PutMapping("/pay-success/{orderNo}")
-    public Result<Void> paySuccess(@PathVariable String orderNo) {
+    public Result<Void> paySuccess(@PathVariable("orderNo") String orderNo) {
         orderService.paySuccess(orderNo);
+        return Result.success(null);
+    }
+
+    @Operation(summary = "退款成功更新状态")
+    @PutMapping("/refund-success/{orderNo}")
+    public Result<Void> refundSuccess(@PathVariable("orderNo") String orderNo) {
+        orderService.refundSuccess(orderNo);
         return Result.success(null);
     }
 
@@ -46,8 +53,9 @@ public class InnerOrderController {
 
     @Operation(summary = "管理端-发货")
     @PutMapping("/ship/{orderNo}")
-    public Result<Void> ship(@PathVariable String orderNo) {
-        orderService.shipOrder(orderNo);
+    public Result<Void> ship(@PathVariable("orderNo") String orderNo,
+                             @RequestParam(value = "trackingNumber", required = false) String trackingNumber) {
+        orderService.shipOrder(orderNo, trackingNumber);
         return Result.success(null);
     }
 

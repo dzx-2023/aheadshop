@@ -5,6 +5,7 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.aheadshop.common.core.enums.PayStatus;
 import com.aheadshop.common.core.enums.PayType;
 import com.aheadshop.common.core.exception.BusinessException;
@@ -13,6 +14,7 @@ import com.aheadshop.common.core.result.Result;
 import com.aheadshop.common.core.util.SnowflakeIdWorker;
 import com.aheadshop.pay.config.AlipayConfig;
 import com.aheadshop.pay.domain.dto.PayCreateDTO;
+import com.aheadshop.pay.domain.dto.RefundDTO;
 import com.aheadshop.pay.domain.po.PayRecord;
 import com.aheadshop.pay.domain.vo.OrderInfoVO;
 import com.aheadshop.pay.domain.vo.PaySubmitVO;
@@ -153,6 +155,94 @@ public class PayServiceImpl implements IPayService {
             return "success";
         } catch (AlipayApiException e) {
             log.error("支付宝回调处理异常: {}", e.getMessage());
+            return "failure";
+        }
+    }
+
+    @Override
+    public void refund(RefundDTO dto) {
+        // 1. 查询支付记录
+        PayRecord record = payRecordMapper.selectOne(
+                new LambdaQueryWrapper<PayRecord>()
+                        .eq(PayRecord::getOrderNo, dto.getOrderNo())
+                        .eq(PayRecord::getStatus, PayStatus.SUCCESS.getCode()));
+        if (record == null) {
+            throw new BusinessException(BusinessExceptionCode.ORDER_NOT_FOUND, "支付记录不存在或状态异常");
+        }
+
+        // 2. 调用支付宝退款 API
+        try {
+            AlipayClient alipayClient = new DefaultAlipayClient(
+                    alipayConfig.getGatewayUrl(),
+                    alipayConfig.getAppId(),
+                    alipayConfig.getPrivateKey(),
+                    "json", "utf-8",
+                    alipayConfig.getAlipayPublicKey(),
+                    "RSA2");
+
+            AlipayTradeRefundRequest request = new AlipayTradeRefundRequest();
+            request.setBizContent("{\"trade_no\":\"" + record.getTradeNo() + "\","
+                    + "\"refund_amount\":\"" + dto.getRefundAmount() + "\","
+                    + "\"out_request_no\":\"" + record.getPayNo() + "\","
+                    + "\"refund_reason\":\"" + (dto.getRefundReason() != null ? dto.getRefundReason() : "用户申请退款") + "\"}");
+
+            var response = alipayClient.execute(request);
+            if (!response.isSuccess()) {
+                log.error("支付宝退款失败: {}", response.getSubMsg());
+                throw new BusinessException(BusinessExceptionCode.PAY_CREATE_FAIL, "退款申请失败: " + response.getSubMsg());
+            }
+            log.info("支付宝退款申请成功: orderNo={}, tradeNo={}", dto.getOrderNo(), record.getTradeNo());
+        } catch (AlipayApiException e) {
+            log.error("支付宝退款异常: {}", e.getMessage());
+            throw new BusinessException(BusinessExceptionCode.PAY_CREATE_FAIL, "退款申请失败");
+        }
+
+        // 3. 更新支付记录状态为退款中
+        record.setStatus(PayStatus.REFUNDED.getCode());
+        payRecordMapper.updateById(record);
+
+        // 4. 通知订单服务
+        try {
+            orderFeignClient.refundSuccess(record.getOrderNo());
+            log.info("订单 {} 退款通知已发送", record.getOrderNo());
+        } catch (Exception e) {
+            log.error("订单 {} 退款通知失败: {}", record.getOrderNo(), e.getMessage());
+        }
+    }
+
+    @Override
+    public String handleRefundCallback(Map<String, String> params) {
+        try {
+            boolean signVerified = AlipaySignature.rsaCheckV1(
+                    params, alipayConfig.getAlipayPublicKey(), "utf-8", "RSA2");
+            if (!signVerified) {
+                log.error("支付宝退款回调验签失败");
+                return "failure";
+            }
+
+            String outTradeNo = params.get("out_trade_no");
+            log.info("支付宝退款回调: outTradeNo={}", outTradeNo);
+
+            PayRecord record = payRecordMapper.selectOne(
+                    new LambdaQueryWrapper<PayRecord>().eq(PayRecord::getPayNo, outTradeNo));
+            if (record == null) {
+                log.error("支付记录不存在: {}", outTradeNo);
+                return "failure";
+            }
+
+            // 幂等检查
+            if (record.getStatus() == PayStatus.REFUNDED.getCode()) {
+                return "success";
+            }
+
+            record.setStatus(PayStatus.REFUNDED.getCode());
+            record.setCallbackTime(LocalDateTime.now());
+            record.setCallbackContent(params.toString());
+            payRecordMapper.updateById(record);
+
+            return "success";
+        } catch (AlipayApiException e) {
+            log.error("支付宝退款回调处理异常: {}", e.getMessage());
             return "failure";
         }
     }

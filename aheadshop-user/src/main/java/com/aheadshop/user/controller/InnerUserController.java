@@ -22,7 +22,7 @@ public class InnerUserController {
 
     @Operation(summary = "获取收货地址详情")
     @GetMapping("/address/{id}")
-    public Result<AddressVO> getAddress(@PathVariable Long id) {
+    public Result<AddressVO> getAddress(@PathVariable("id") Long id) {
         return Result.success(addressService.getByIdForInner(id));
     }
 

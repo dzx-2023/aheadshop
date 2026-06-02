@@ -62,6 +62,18 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 商品图片静态资源
+        - id: product-upload
+          uri: lb://aheadshop-product
+          predicates:
+            - Path=/upload/product/**
+
+        # 背景图静态资源
+        - id: background-upload
+          uri: lb://aheadshop-product
+          predicates:
+            - Path=/upload/background/**
+
         # 购物车服务 Knife4j 文档（白名单）
         - id: cart-doc
           uri: lb://aheadshop-cart
@@ -147,6 +159,11 @@ gateway:
       - /api/product/detail/**
       - /api/product/category/**
       - /api/product/list
+      - /api/product/review/list/**
+      - /api/product/review/avg-score/**
+      - /upload/product/**
+      - /upload/background/**
+      - /api/product/background/active
       - /api/search/**
       - /user/doc.html
       - /user/webjars/**

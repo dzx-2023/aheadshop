@@ -5,6 +5,16 @@
       <div class="status-banner" :class="`status-${order.status}`">
         <h2 class="status-text">{{ OrderStatusText[order.status] }}</h2>
         <p class="status-hint">{{ statusHint }}</p>
+        <!-- 待支付倒计时 -->
+        <div v-if="order.status === OrderStatus.PENDING_PAY && countdownText" class="countdown-bar">
+          <svg class="countdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="countdown-label">支付剩余</span>
+          <span class="countdown-time" :class="{ urgent: isUrgent }">{{ countdownText }}</span>
+          <span class="countdown-suffix">后自动取消</span>
+        </div>
       </div>
 
       <!-- 状态步骤条 -->
@@ -93,27 +103,91 @@
         </div>
       </section>
 
+      <!-- 退款信息 -->
+      <section v-if="refundInfo" class="section refund-section">
+        <h3>退款信息</h3>
+        <div class="info-row">
+          <span class="info-label">退款单号</span>
+          <span class="info-value">{{ refundInfo.refundNo }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">退款类型</span>
+          <span class="info-value">{{ RefundTypeText[refundInfo.refundType] || '仅退款' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">退款金额</span>
+          <span class="info-value" style="color: #c44536; font-weight: 600">¥{{ formatPrice(refundInfo.refundAmount) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">退款原因</span>
+          <span class="info-value">{{ refundInfo.refundReason || '-' }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">退款状态</span>
+          <span class="info-value">
+            <el-tag :type="refundInfo.status === 3 ? 'success' : refundInfo.status === 4 ? 'danger' : 'warning'" size="small">
+              {{ RefundStatusText[refundInfo.status] || '未知' }}
+            </el-tag>
+          </span>
+        </div>
+        <div v-if="refundInfo.auditRemark" class="info-row">
+          <span class="info-label">审批备注</span>
+          <span class="info-value">{{ refundInfo.auditRemark }}</span>
+        </div>
+      </section>
+
       <!-- 操作按钮 -->
       <div class="action-bar">
-        <template v-if="order.status === 1">
+        <template v-if="order.status === OrderStatus.PENDING_PAY">
           <el-button size="large" @click="handleCancel">取消订单</el-button>
-          <el-button type="primary" size="large" class="pay-btn" @click="goPay">去支付</el-button>
+          <el-button type="primary" size="large" class="pay-btn" :loading="paying" @click="goPay">{{ paying ? '等待支付...' : '去支付' }}</el-button>
         </template>
-        <template v-if="order.status === 3">
+        <template v-if="order.status === OrderStatus.SHIPPED">
           <el-button type="primary" size="large" @click="handleConfirm">确认收货</el-button>
+        </template>
+        <template v-if="canRefund">
+          <el-button size="large" type="danger" plain @click="showRefundDialog">申请退款</el-button>
         </template>
         <el-button size="large" @click="$router.push('/order')">返回订单列表</el-button>
       </div>
+
+      <!-- 退款申请弹窗 -->
+      <el-dialog v-model="refundDialogVisible" title="申请退款" width="460px" :close-on-click-modal="false">
+        <el-form label-width="80px">
+          <el-form-item label="订单号">
+            <el-input :model-value="order?.orderNo" disabled />
+          </el-form-item>
+          <el-form-item label="退款类型">
+            <el-radio-group v-model="refundType">
+              <el-radio :value="1">仅退款</el-radio>
+              <el-radio :value="2">退货退款</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="退款金额">
+            <span style="color: #c44536; font-weight: 600; font-size: 16px">¥{{ order?.payAmount?.toFixed(2) }}</span>
+          </el-form-item>
+          <el-form-item label="退款原因">
+            <el-input v-model="refundReason" type="textarea" :rows="3" placeholder="请输入退款原因（选填）" maxlength="200" show-word-limit />
+          </el-form-item>
+        </el-form>
+        <template #footer>
+          <el-button @click="refundDialogVisible = false">取消</el-button>
+          <el-button type="danger" :loading="refundLoading" @click="handleRefund">确认退款</el-button>
+        </template>
+      </el-dialog>
     </template>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderDetail, cancelOrder, confirmOrder } from '@/api/order'
-import { OrderStatusText } from '@/types/order'
+import { getOrderDetail, cancelOrder, confirmOrder, applyRefund, getRefundByOrderNo } from '@/api/order'
+import { createPay, queryPayStatus } from '@/api/pay'
+import { OrderStatus, OrderStatusText, RefundStatusText, RefundTypeText } from '@/types/order'
+import type { RefundItem } from '@/types/order'
 import type { OrderDetail as OrderDetailType } from '@/types/order'
 
 const route = useRoute()
@@ -125,22 +199,82 @@ const placeholderImg = 'https://placehold.co/60x60/f5f3ef/d0ccc7?text=No+Image'
 
 const stepsActive = computed(() => {
   if (!order.value) return 0
-  const map: Record<number, number> = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 1, 6: 2, 7: 2 }
-  return map[order.value.status] || 0
+  const map: Record<number, number> = { 0: 1, 1: 2, 2: 3, 3: 3, 4: 4, 5: 1, 6: 2, 7: 2 }
+  return map[order.value.status] ?? 0
 })
 
 const statusHint = computed(() => {
   if (!order.value) return ''
   const map: Record<number, string> = {
-    1: '请在30分钟内完成支付，超时订单将自动取消',
-    2: '商家正在准备发货，请耐心等待',
-    3: '商品已发出，请注意查收',
+    0: '请在30分钟内完成支付，超时订单将自动取消',
+    1: '商家正在准备发货，请耐心等待',
+    2: '商品已发出，请注意查收',
+    3: '商品已收货',
     4: '订单已完成，感谢您的购买',
     5: '订单已取消',
     6: '退款申请处理中',
     7: '退款已完成',
   }
   return map[order.value.status] || ''
+})
+
+// ── 30 分钟支付倒计时 ──
+const TIMEOUT_MS = 30 * 60 * 1000
+const countdownText = ref('')
+const isUrgent = ref(false)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
+
+function startCountdown() {
+  stopCountdown()
+  if (!order.value || order.value.status !== OrderStatus.PENDING_PAY) return
+
+  const created = new Date(order.value.createTime).getTime()
+  const deadline = created + TIMEOUT_MS
+
+  function tick() {
+    const remaining = deadline - Date.now()
+    if (remaining <= 0) {
+      countdownText.value = ''
+      isUrgent.value = false
+      stopCountdown()
+      // 刷新订单状态（后端会自动取消）
+      if (order.value) {
+        getOrderDetail(order.value.orderNo).then((res: any) => {
+          order.value = res.data
+        }).catch(() => {})
+      }
+      return
+    }
+    const mins = Math.floor(remaining / 60000)
+    const secs = Math.floor((remaining % 60000) / 1000)
+    countdownText.value = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+    isUrgent.value = remaining < 5 * 60 * 1000 // 最后 5 分钟标红
+  }
+
+  tick()
+  countdownTimer = setInterval(tick, 1000)
+}
+
+function stopCountdown() {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+}
+
+// 监听订单状态变化，启动/停止倒计时
+watch(() => order.value?.status, (status) => {
+  if (status === OrderStatus.PENDING_PAY) {
+    startCountdown()
+  } else {
+    stopCountdown()
+    countdownText.value = ''
+  }
+})
+
+onUnmounted(() => {
+  stopCountdown()
+  stopPoll()
 })
 
 function formatPrice(price: number): string {
@@ -186,9 +320,111 @@ async function handleConfirm() {
   }
 }
 
-function goPay() {
-  // 支付页后续实现
-  ElMessage.info('支付功能开发中')
+// ── 支付 ──
+const paying = ref(false)
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+async function goPay() {
+  if (!order.value || paying.value) return
+  paying.value = true
+
+  try {
+    const res: any = await createPay(order.value.orderNo, 1) // 1=支付宝
+    const data = res.data
+    const payNo = data.payNo
+    const payForm = data.payForm
+
+    // 新窗口打开支付宝
+    if (payForm) {
+      const win = window.open('', '_blank')
+      if (win) {
+        win.document.write(payForm)
+        win.document.close()
+      } else {
+        ElMessage.warning('浏览器阻止了弹窗，请允许弹窗后重试')
+        paying.value = false
+        return
+      }
+    }
+
+    // 后台轮询支付结果
+    let count = 0
+    pollTimer = setInterval(async () => {
+      count++
+      if (count >= 150) { // 最多 5 分钟
+        stopPoll()
+        return
+      }
+      try {
+        const statusRes: any = await queryPayStatus(payNo)
+        if (statusRes.data === 1) {
+          stopPoll()
+          ElMessage.success('支付成功')
+          const detailRes: any = await getOrderDetail(order.value!.orderNo)
+          order.value = detailRes.data
+        } else if (statusRes.data === 2) {
+          stopPoll()
+          ElMessage.error('支付失败')
+        }
+      } catch { /* 继续轮询 */ }
+    }, 2000)
+  } catch {
+    paying.value = false
+  }
+}
+
+function stopPoll() {
+  paying.value = false
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+}
+
+// ── 退款 ──
+const refundInfo = ref<RefundItem | null>(null)
+const refundDialogVisible = ref(false)
+const refundLoading = ref(false)
+const refundReason = ref('')
+const refundType = ref(1)
+
+const canRefund = computed(() => {
+  if (!order.value || refundInfo.value) return false
+  return [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.RECEIVED].includes(order.value.status as any)
+})
+
+function showRefundDialog() {
+  refundReason.value = ''
+  refundType.value = 1
+  refundDialogVisible.value = true
+}
+
+async function handleRefund() {
+  if (!order.value) return
+  refundLoading.value = true
+  try {
+    await applyRefund(order.value.orderNo, refundType.value, refundReason.value || undefined)
+    ElMessage.success('退款申请已提交')
+    refundDialogVisible.value = false
+    // 刷新订单和退款信息
+    const [detailRes, refundRes] = await Promise.all([
+      getOrderDetail(order.value.orderNo),
+      getRefundByOrderNo(order.value.orderNo).catch(() => null),
+    ])
+    order.value = (detailRes as any).data
+    refundInfo.value = (refundRes as any)?.data || null
+  } catch {
+    // 错误已在拦截器处理
+  } finally {
+    refundLoading.value = false
+  }
+}
+
+async function fetchRefundInfo() {
+  if (!order.value) return
+  try {
+    const res: any = await getRefundByOrderNo(order.value.orderNo)
+    refundInfo.value = res.data
+  } catch {
+    refundInfo.value = null
+  }
 }
 
 onMounted(async () => {
@@ -200,6 +436,8 @@ onMounted(async () => {
   try {
     const res: any = await getOrderDetail(orderNo)
     order.value = res.data
+    // 加载退款信息（如有）
+    fetchRefundInfo()
   } catch {
     ElMessage.error('订单信息加载失败')
   } finally {
@@ -225,7 +463,7 @@ onMounted(async () => {
   background: linear-gradient(135deg, #2d2926 0%, #4a4540 100%);
 }
 
-.status-banner.status-1 {
+.status-banner.status-0 {
   background: linear-gradient(135deg, #d4a574 0%, #c4956a 100%);
 }
 
@@ -249,6 +487,56 @@ onMounted(async () => {
   font-family: var(--font-body);
   font-size: 13px;
   opacity: 0.85;
+  margin-bottom: 0;
+}
+
+/* ── 倒计时 ── */
+.countdown-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.countdown-icon {
+  width: 18px;
+  height: 18px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.countdown-label {
+  font-family: var(--font-body);
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.countdown-time {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+}
+
+.countdown-time.urgent {
+  color: #ffd666;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.countdown-suffix {
+  font-family: var(--font-body);
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 /* ── 步骤条 ── */
@@ -461,6 +749,11 @@ onMounted(async () => {
 
 .info-value {
   color: var(--color-charcoal);
+}
+
+/* ── 退款信息 ── */
+.refund-section {
+  border-left: 3px solid #d4a574;
 }
 
 /* ── 操作按钮 ── */

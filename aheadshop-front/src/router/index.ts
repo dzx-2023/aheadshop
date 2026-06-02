@@ -52,6 +52,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
       },
       {
+        path: 'refund',
+        name: 'RefundList',
+        component: () => import('@/views/order/RefundList.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
         path: 'user',
         name: 'User',
         component: () => import('@/views/user/index.vue'),
@@ -72,6 +78,13 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/user/Register.vue'),
     meta: { guestOnly: true },
   },
+  // 支付结果页（无布局）
+  {
+    path: '/pay/result',
+    name: 'PayResult',
+    component: () => import('@/views/pay/PayResult.vue'),
+    meta: { requiresAuth: true },
+  },
   // 后台管理（AdminLayout）
   {
     path: '/admin',
@@ -90,14 +103,44 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/admin/Products.vue'),
       },
       {
+        path: 'products/add',
+        name: 'AdminProductAdd',
+        component: () => import('@/views/admin/ProductForm.vue'),
+      },
+      {
+        path: 'products/edit/:id',
+        name: 'AdminProductEdit',
+        component: () => import('@/views/admin/ProductForm.vue'),
+      },
+      {
         path: 'orders',
         name: 'AdminOrders',
         component: () => import('@/views/admin/Orders.vue'),
       },
       {
+        path: 'orders/:orderNo',
+        name: 'AdminOrderDetail',
+        component: () => import('@/views/admin/OrderDetail.vue'),
+      },
+      {
         path: 'users',
         name: 'AdminUsers',
         component: () => import('@/views/admin/Users.vue'),
+      },
+      {
+        path: 'refunds',
+        name: 'AdminRefunds',
+        component: () => import('@/views/admin/Refunds.vue'),
+      },
+      {
+        path: 'categories',
+        name: 'AdminCategories',
+        component: () => import('@/views/admin/Categories.vue'),
+      },
+      {
+        path: 'backgrounds',
+        name: 'AdminBackgrounds',
+        component: () => import('@/views/admin/Backgrounds.vue'),
       },
     ],
   },

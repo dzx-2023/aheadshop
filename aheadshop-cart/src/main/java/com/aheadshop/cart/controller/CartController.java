@@ -48,7 +48,7 @@ public class CartController {
     @Operation(summary = "删除商品")
     @DeleteMapping("/delete/{skuId}")
     public Result<Void> delete(@RequestHeader("X-User-Id") Long userId,
-                               @PathVariable Long skuId) {
+                               @PathVariable("skuId") Long skuId) {
         cartService.deleteItem(userId, skuId);
         return Result.success(null);
     }
@@ -62,7 +62,7 @@ public class CartController {
     @Operation(summary = "勾选/取消勾选")
     @PutMapping("/check/{skuId}")
     public Result<Void> check(@RequestHeader("X-User-Id") Long userId,
-                              @PathVariable Long skuId,
+                              @PathVariable("skuId") Long skuId,
                               @RequestParam Integer checked) {
         cartService.checkItem(userId, skuId, checked);
         return Result.success(null);

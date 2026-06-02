@@ -26,6 +26,42 @@
         <if test="brandId != null">
             AND s.brand_id = #{brandId}
         </if>
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
+        ORDER BY s.create_time DESC
+    </select>
+
+    <select id="selectSpuPageInCategories" resultType="com.aheadshop.product.domain.vo.SpuPageVO">
+        SELECT
+            s.id,
+            s.name,
+            s.subtitle,
+            s.main_image AS mainImage,
+            c.name AS categoryName,
+            b.name AS brandName,
+            (SELECT MIN(sk.price) FROM sku sk WHERE sk.spu_id = s.id AND sk.deleted = 0) AS minPrice,
+            s.sales,
+            s.status
+        FROM spu s
+        LEFT JOIN category c ON c.id = s.category_id
+        LEFT JOIN brand b ON b.id = s.brand_id
+        WHERE s.deleted = 0
+        <if test="keyword != null and keyword != ''">
+            AND s.name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="categoryIds != null and categoryIds.size() > 0">
+            AND s.category_id IN
+            <foreach collection="categoryIds" item="cid" open="(" separator="," close=")">
+                #{cid}
+            </foreach>
+        </if>
+        <if test="brandId != null">
+            AND s.brand_id = #{brandId}
+        </if>
+        <if test="status != null">
+            AND s.status = #{status}
+        </if>
         ORDER BY s.create_time DESC
     </select>
 

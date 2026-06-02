@@ -11,7 +11,6 @@ import com.aheadshop.product.service.ISkuService;
 import com.aheadshop.product.service.ISpuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,13 +28,13 @@ public class InnerProductController {
 
     @Operation(summary = "SKU 详情")
     @GetMapping("/sku/{id}")
-    public Result<SkuInfoVO> skuInfo(@PathVariable Long id) {
+    public Result<SkuInfoVO> skuInfo(@PathVariable("id") Long id) {
         return Result.success(skuService.getSkuInfo(id));
     }
 
     @Operation(summary = "批量锁库存")
     @PostMapping("/sku/lock-stock")
-    public Result<Void> lockStock(@Valid @RequestBody List<StockDTO> list) {
+    public Result<Void> lockStock(@RequestBody List<StockDTO> list) {
         for (StockDTO dto : list) {
             int rows = skuService.lockStock(dto.getSkuId(), dto.getQuantity());
             if (rows == 0) {
@@ -48,7 +47,7 @@ public class InnerProductController {
 
     @Operation(summary = "批量释放库存")
     @PostMapping("/sku/unlock-stock")
-    public Result<Void> unlockStock(@Valid @RequestBody List<StockDTO> list) {
+    public Result<Void> unlockStock(@RequestBody List<StockDTO> list) {
         for (StockDTO dto : list) {
             skuService.unlockStock(dto.getSkuId(), dto.getQuantity());
         }
@@ -57,7 +56,7 @@ public class InnerProductController {
 
     @Operation(summary = "确认扣减")
     @PostMapping("/sku/confirm-deduct")
-    public Result<Void> confirmDeduct(@Valid @RequestBody List<StockDTO> list) {
+    public Result<Void> confirmDeduct(@RequestBody List<StockDTO> list) {
         for (StockDTO dto : list) {
             skuService.confirmDeduct(dto.getSkuId(), dto.getQuantity());
         }
@@ -66,7 +65,7 @@ public class InnerProductController {
 
     @Operation(summary = "SPU 信息")
     @GetMapping("/spu/{id}")
-    public Result<SpuDetailVO> spuInfo(@PathVariable Long id) {
+    public Result<SpuDetailVO> spuInfo(@PathVariable("id") Long id) {
         return Result.success(spuService.getDetail(id));
     }
 

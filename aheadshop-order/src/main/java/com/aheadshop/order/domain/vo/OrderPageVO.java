@@ -14,6 +14,7 @@ public class OrderPageVO {
     private BigDecimal totalAmount;
     private BigDecimal payAmount;
     private Integer status;
+    private String trackingNumber;
     private String receiverName;
     private String receiverPhone;
     private String receiverAddress;

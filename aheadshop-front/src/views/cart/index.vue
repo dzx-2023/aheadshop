@@ -261,7 +261,7 @@ onMounted(() => {
 .cart-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 20px 120px;
+  padding: 24px 20px 40px;
 }
 
 .page-title {
@@ -461,18 +461,20 @@ onMounted(() => {
 
 /* ── 底部结算栏 ── */
 .cart-footer {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
   z-index: 50;
-  background: #fff;
-  border-top: 1px solid var(--color-border);
-  box-shadow: 0 -4px 16px rgba(45, 41, 38, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 228, 223, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 -2px 20px rgba(45, 41, 38, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 32px;
+  padding: 16px 24px;
+  margin-top: 16px;
 }
 
 .footer-left {
@@ -484,13 +486,13 @@ onMounted(() => {
 .footer-right {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
 }
 
 .summary {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 10px;
 }
 
 .summary-label {
@@ -516,24 +518,27 @@ onMounted(() => {
 
 .summary-price .value {
   font-family: 'DM Sans', sans-serif;
-  font-size: 24px;
+  font-size: 26px;
   letter-spacing: -0.5px;
 }
 
 .checkout-btn {
-  height: 44px;
-  min-width: 140px;
+  height: 46px;
+  min-width: 150px;
   font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 1px;
   background: var(--color-charcoal);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+  transition: all 0.25s;
 }
 
 .checkout-btn:hover:not(:disabled) {
-  background: var(--color-charcoal-light);
+  background: var(--color-charcoal-light, #3d3935);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 41, 38, 0.2);
 }
 
 .checkout-btn:disabled {

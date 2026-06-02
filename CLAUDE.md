@@ -18,6 +18,17 @@ $MVN clean compile -pl aheadshop-user -am
 $MVN clean install -pl aheadshop-common/common-core,aheadshop-common/common-exception,aheadshop-common/common-redis,aheadshop-common/common-mybatis,aheadshop-common/common-swagger -am
 ```
 
+### Frontend (in aheadshop-front/)
+
+```bash
+npm run dev        # Vite dev server at localhost:5173, proxies /api → localhost:8080
+npm run build      # vue-tsc -b && vite build (type-check + production build)
+npm run preview    # Preview production build
+npx vue-tsc --noEmit  # Type-check only
+```
+
+No test runner or linter is configured for the frontend.
+
 ## Architecture
 
 Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 17, Maven multi-module.
@@ -50,9 +61,26 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - **Base entity**: All main tables extend `BaseEntity` (id AUTO, createTime, updateTime, deleted @TableLogic, version @Version)
 - **MyBatis-Plus mapper scan**: `@MapperScan("com.aheadshop.*.mapper")` in MybatisPlusConfig
 
-### Service Dependencies
+### Infrastructure Dependencies
 
-Gateway → all services (routing). Business services → Nacos (discovery/config), Redis (cache/tokens), MySQL. Order/Pay/Product → RabbitMQ (async messaging).
+| Service | Host | Port | Notes |
+|---------|------|------|-------|
+| Nacos | 127.0.0.1 | 8848 | Service discovery + config center, namespace `public` |
+| Redis | 127.0.0.1 | 6379 | DB 0, password `123456` |
+| MySQL | localhost | 3306 | 4 databases: `aheadshop_user`, `aheadshop_product`, `aheadshop_order`, `aheadshop_pay` |
+
+### Middleware Per Service
+
+| Service | MySQL | Redis | RabbitMQ | Elasticsearch | OpenFeign | Sentinel |
+|---------|-------|-------|----------|---------------|-----------|----------|
+| gateway | — | Yes (reactive) | — | — | — | Yes |
+| user | Yes | Yes | — | — | Yes | Yes |
+| product | Yes | Yes | Yes | — | Yes | Yes |
+| cart | — | Yes | — | — | Yes | Yes |
+| order | Yes | Yes | Yes | — | Yes | Yes |
+| pay | Yes | Yes | Yes | — | Yes | Yes |
+| search | — | — | Yes | Yes | Yes | Yes |
+| admin | — | — | — | — | Yes | Yes |
 
 ### Port Map
 

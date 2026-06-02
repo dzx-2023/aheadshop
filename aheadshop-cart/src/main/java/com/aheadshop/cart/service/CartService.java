@@ -47,6 +47,7 @@ public class CartService {
             SkuInfoVO skuInfo = result.getData();
             CartItem item = CartItem.builder()
                     .skuId(skuId)
+                    .spuId(skuInfo.getSpuId())
                     .skuName(skuInfo.getSkuName())
                     .image(skuInfo.getImage())
                     .price(skuInfo.getPrice())

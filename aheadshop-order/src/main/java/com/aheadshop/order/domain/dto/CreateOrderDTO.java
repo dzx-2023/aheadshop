@@ -10,4 +10,10 @@ public class CreateOrderDTO {
     private Long addressId;
 
     private String remark;
+
+    /** 直接购买：指定 SKU（为空则从购物车取已勾选商品） */
+    private Long skuId;
+
+    /** 直接购买：数量 */
+    private Integer quantity;
 }

@@ -20,7 +20,7 @@ public class CategoryBrandController {
 
     @Operation(summary = "查询分类下的品牌列表")
     @GetMapping("/brands/{categoryId}")
-    public Result<List<BrandVO>> brandsByCategory(@PathVariable Long categoryId) {
+    public Result<List<BrandVO>> brandsByCategory(@PathVariable("categoryId") Long categoryId) {
         return Result.success(categoryBrandService.listBrandsByCategoryId(categoryId));
     }
 

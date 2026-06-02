@@ -3,13 +3,21 @@
     <h2 class="page-title">我的订单</h2>
 
     <!-- Tab 切换 -->
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange">
-      <el-tab-pane label="全部" name="all" />
-      <el-tab-pane label="待支付" name="1" />
-      <el-tab-pane label="已支付" name="2" />
-      <el-tab-pane label="已发货" name="3" />
-      <el-tab-pane label="已完成" name="4" />
-    </el-tabs>
+    <div class="tabs-row">
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <el-tab-pane label="全部" name="all" />
+        <el-tab-pane label="待支付" name="0" />
+        <el-tab-pane label="已支付" name="1" />
+        <el-tab-pane label="已发货" name="2" />
+        <el-tab-pane label="已完成" name="4" />
+        <el-tab-pane label="退款中" name="6" />
+        <el-tab-pane label="已退款" name="7" />
+      </el-tabs>
+      <el-button text type="primary" @click="$router.push('/refund')">
+        退款记录
+        <el-icon class="el-icon--right"><ArrowRight /></el-icon>
+      </el-button>
+    </div>
 
     <!-- 订单列表 -->
     <div v-if="orders.length" class="order-cards">
@@ -34,11 +42,11 @@
             <span class="amount-value">¥{{ formatPrice(order.payAmount) }}</span>
           </div>
           <div class="order-actions">
-            <template v-if="order.status === 1">
+            <template v-if="order.status === OrderStatus.PENDING_PAY">
               <el-button size="small" @click.stop="handleCancel(order)">取消订单</el-button>
               <el-button type="primary" size="small" @click.stop="goPay(order.orderNo)">去支付</el-button>
             </template>
-            <template v-if="order.status === 3">
+            <template v-if="order.status === OrderStatus.SHIPPED">
               <el-button type="primary" size="small" @click.stop="handleConfirm(order)">确认收货</el-button>
             </template>
             <el-button text size="small" @click.stop="goDetail(order.orderNo)">查看详情</el-button>
@@ -70,8 +78,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { ArrowRight } from '@element-plus/icons-vue'
 import { getOrderList, cancelOrder, confirmOrder } from '@/api/order'
-import { OrderStatusText } from '@/types/order'
+import { OrderStatus, OrderStatusText } from '@/types/order'
 import type { OrderPageItem } from '@/types/order'
 
 const router = useRouter()
@@ -85,9 +94,10 @@ const total = ref(0)
 
 function getStatusType(status: number): '' | 'success' | 'warning' | 'info' | 'danger' {
   const map: Record<number, '' | 'success' | 'warning' | 'info' | 'danger'> = {
-    1: 'warning',
-    2: '',
-    3: '',
+    0: 'warning',
+    1: '',
+    2: 'success',
+    3: 'success',
     4: 'success',
     5: 'info',
     6: 'danger',
@@ -178,11 +188,17 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-:deep(.el-tabs__active-bar) {
+.tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tabs-row :deep(.el-tabs__active-bar) {
   background: var(--color-amber);
 }
 
-:deep(.el-tabs__item) {
+.tabs-row :deep(.el-tabs__item) {
   font-family: var(--font-body);
   font-size: 14px;
 }

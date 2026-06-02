@@ -6,6 +6,7 @@ import com.aheadshop.common.core.exception.BusinessExceptionCode;
 import com.aheadshop.common.core.result.PageResult;
 import com.aheadshop.common.core.result.Result;
 import com.aheadshop.common.core.util.SnowflakeIdWorker;
+import com.aheadshop.common.core.vo.SkuInfoVO;
 import com.aheadshop.order.config.RabbitMQConfig;
 import com.aheadshop.order.domain.dto.CreateOrderDTO;
 import com.aheadshop.order.domain.dto.OrderQueryDTO;
@@ -48,13 +49,34 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     public SubmitOrderVO createOrder(Long userId, CreateOrderDTO dto) {
-        // 1. 获取购物车已勾选商品
-        Result<List<CartItemVO>> cartResult = cartFeignClient.getCheckedItems(userId);
-        if (cartResult == null || cartResult.getCode() != 200 || cartResult.getData() == null
-                || cartResult.getData().isEmpty()) {
-            throw new BusinessException(BusinessExceptionCode.CART_EMPTY, "购物车为空，请先添加商品");
+        List<CartItemVO> cartItems;
+
+        if (dto.getSkuId() != null) {
+            // 直接购买模式：通过 Feign 获取 SKU 信息
+            int qty = (dto.getQuantity() != null && dto.getQuantity() > 0) ? dto.getQuantity() : 1;
+            Result<SkuInfoVO> skuResult = productFeignClient.getSkuInfo(dto.getSkuId());
+            if (skuResult == null || skuResult.getCode() != 200 || skuResult.getData() == null) {
+                throw new BusinessException(BusinessExceptionCode.PRODUCT_NOT_FOUND, "商品不存在");
+            }
+            SkuInfoVO sku = skuResult.getData();
+            CartItemVO item = new CartItemVO();
+            item.setSkuId(sku.getId());
+            item.setSpuId(sku.getSpuId());
+            item.setSkuName(sku.getSkuName());
+            item.setImage(sku.getImage());
+            item.setPrice(sku.getPrice());
+            item.setSpecs(sku.getSpecs());
+            item.setQuantity(qty);
+            cartItems = List.of(item);
+        } else {
+            // 购物车模式：获取已勾选商品
+            Result<List<CartItemVO>> cartResult = cartFeignClient.getCheckedItems(userId);
+            if (cartResult == null || cartResult.getCode() != 200 || cartResult.getData() == null
+                    || cartResult.getData().isEmpty()) {
+                throw new BusinessException(BusinessExceptionCode.CART_EMPTY, "购物车为空，请先添加商品");
+            }
+            cartItems = cartResult.getData();
         }
-        List<CartItemVO> cartItems = cartResult.getData();
 
         // 2. 批量锁库存
         List<StockDTO> lockStockList = cartItems.stream()
@@ -105,6 +127,7 @@ public class OrderServiceImpl implements IOrderService {
             orderItem.setOrderId(order.getId());
             orderItem.setOrderNo(orderNo);
             orderItem.setSkuId(item.getSkuId());
+            orderItem.setSpuId(item.getSpuId());
             orderItem.setSkuName(item.getSkuName());
             orderItem.setSkuImage(item.getImage());
             orderItem.setSpecs(item.getSpecs());
@@ -124,11 +147,13 @@ public class OrderServiceImpl implements IOrderService {
         orderLog.setNote("创建订单");
         orderLogMapper.insert(orderLog);
 
-        // 9. 清除购物车已勾选商品
-        try {
-            cartFeignClient.clearCheckedItems(userId);
-        } catch (Exception e) {
-            log.warn("清除购物车已勾选商品失败: {}", e.getMessage());
+        // 9. 清除购物车已勾选商品（仅购物车模式）
+        if (dto.getSkuId() == null) {
+            try {
+                cartFeignClient.clearCheckedItems(userId);
+            } catch (Exception e) {
+                log.warn("清除购物车已勾选商品失败: {}", e.getMessage());
+            }
         }
 
         // 10. 发送延时消息（30min 后检查是否支付）
@@ -279,6 +304,22 @@ public class OrderServiceImpl implements IOrderService {
         log.info("订单 {} 支付成功，状态已更新", orderNo);
     }
 
+    @Override
+    public void refundSuccess(String orderNo) {
+        Order order = orderMapper.selectOne(
+                new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo));
+        if (order == null) {
+            throw new BusinessException(BusinessExceptionCode.ORDER_NOT_FOUND, "订单不存在");
+        }
+
+        Integer oldStatus = order.getStatus();
+        order.setStatus(OrderStatus.REFUNDED.getCode());
+        orderMapper.updateById(order);
+
+        saveLog(orderNo, "system", oldStatus, OrderStatus.REFUNDED.getCode(), "退款成功");
+        log.info("订单 {} 退款成功，状态已更新", orderNo);
+    }
+
     // ========== 管理端接口 ==========
 
     @Override
@@ -298,7 +339,7 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     @Transactional
-    public void shipOrder(String orderNo) {
+    public void shipOrder(String orderNo, String trackingNumber) {
         Order order = orderMapper.selectOne(
                 new LambdaQueryWrapper<Order>().eq(Order::getOrderNo, orderNo));
         if (order == null) {
@@ -311,6 +352,7 @@ public class OrderServiceImpl implements IOrderService {
         Integer oldStatus = order.getStatus();
         order.setStatus(OrderStatus.SHIPPED.getCode());
         order.setShipTime(java.time.LocalDateTime.now());
+        order.setTrackingNumber(trackingNumber);
         orderMapper.updateById(order);
 
         saveLog(orderNo, "admin", oldStatus, OrderStatus.SHIPPED.getCode(), "管理员发货");
@@ -396,6 +438,7 @@ public class OrderServiceImpl implements IOrderService {
                 .totalAmount(order.getTotalAmount())
                 .payAmount(order.getPayAmount())
                 .status(order.getStatus())
+                .trackingNumber(order.getTrackingNumber())
                 .receiverName(order.getReceiverName())
                 .receiverPhone(order.getReceiverPhone())
                 .receiverAddress(order.getReceiverAddress())
@@ -409,6 +452,7 @@ public class OrderServiceImpl implements IOrderService {
 
         List<OrderItemVO> itemVOs = items.stream()
                 .map(item -> OrderItemVO.builder()
+                        .spuId(item.getSpuId())
                         .skuId(item.getSkuId())
                         .skuName(item.getSkuName())
                         .skuImage(item.getSkuImage())
@@ -428,6 +472,8 @@ public class OrderServiceImpl implements IOrderService {
                 .status(order.getStatus())
                 .payType(order.getPayType())
                 .payTime(order.getPayTime())
+                .shipTime(order.getShipTime())
+                .trackingNumber(order.getTrackingNumber())
                 .receiverName(order.getReceiverName())
                 .receiverPhone(order.getReceiverPhone())
                 .receiverAddress(order.getReceiverAddress())

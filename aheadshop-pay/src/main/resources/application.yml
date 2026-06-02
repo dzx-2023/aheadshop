@@ -40,8 +40,8 @@ alipay:
   alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvlZvJEfrfihGxob1e+/r04FnRxg9+8LBBuwIi5SF2mMt8iRU2frXHPLs4sx44EEmRoWvKc44wKek8nkdpeKKcb7cFoG/yvEXq836zaTawa1njJoRMxLTDSqh7mti/B/VTjCaWLKojMPUPIvBQZx1dDrhsH7LpHpk4Y8xud7IaJTck0rcuVq0ZxGtAXWq99xGMkpK13CSu9H8bX+HSMDKkTBJi/FQUgem8USQXg8AH4rzBFAVscXdf+XcCxX3sbnGi1+AH9GUTy+BlZOvurY6xTOxz1QM8KQ6Rb+xOKnlPhAAqt4b74/gqqEeMF9quCFs0j8Z9kS2rBlucxUkb4zqNQIDAQAB
   gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
   return-url: http://localhost:5173/pay/result
-  # todo 内网穿透地址
-  notify-url: http://localhost:8085/pay/callback/alipay
+  # todo 需要更改内网穿透地址         账号：oxlqss3859@sandbox.com  密码：111111
+  notify-url: https://41fb4e79.r15.cpolar.top/pay/callback/alipay
 
 logging:
   level:

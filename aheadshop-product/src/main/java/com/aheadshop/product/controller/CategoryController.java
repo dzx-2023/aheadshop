@@ -41,7 +41,7 @@ public class CategoryController {
 
     @Operation(summary = "删除分类")
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable("id") Long id) {
         categoryService.deleteCategory(id);
         return Result.success(null);
     }

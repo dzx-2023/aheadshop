@@ -5,31 +5,49 @@
       <aside class="category-sidebar">
         <h3 class="sidebar-title">商品分类</h3>
         <div class="category-tree">
-          <div
-            v-for="cat in categories"
-            :key="cat.id"
-            class="tree-group"
-          >
-            <div
-              class="tree-parent"
-              :class="{ active: selectedCatId === cat.id }"
-              @click="selectCategory(cat.id)"
-            >
-              <span>{{ cat.name }}</span>
-              <el-icon v-if="cat.children?.length" class="expand-icon"><ArrowRight /></el-icon>
-            </div>
-            <div v-if="cat.children?.length" class="tree-children">
+          <template v-for="cat in categories" :key="cat.id">
+            <div class="tree-group">
               <div
-                v-for="child in cat.children"
-                :key="child.id"
-                class="tree-child"
-                :class="{ active: selectedCatId === child.id }"
-                @click="selectCategory(child.id)"
+                class="tree-node tree-level-1"
+                :class="{ active: selectedCatId === cat.id }"
+                @click="selectCategory(cat.id)"
               >
-                {{ child.name }}
+                <span>{{ cat.name }}</span>
+                <el-icon
+                  v-if="cat.children?.length"
+                  class="expand-icon"
+                  :class="{ expanded: expandedCatIds.has(cat.id) }"
+                ><ArrowRight /></el-icon>
+              </div>
+              <div v-if="cat.children?.length && expandedCatIds.has(cat.id)" class="tree-children">
+                <template v-for="child in cat.children" :key="child.id">
+                  <div
+                    class="tree-node tree-level-2"
+                    :class="{ active: selectedCatId === child.id }"
+                    @click="selectCategory(child.id)"
+                  >
+                    <span>{{ child.name }}</span>
+                    <el-icon
+                      v-if="child.children?.length"
+                      class="expand-icon"
+                      :class="{ expanded: expandedCatIds.has(child.id) }"
+                    ><ArrowRight /></el-icon>
+                  </div>
+                  <div v-if="child.children?.length && expandedCatIds.has(child.id)" class="tree-children">
+                    <div
+                      v-for="grandchild in child.children"
+                      :key="grandchild.id"
+                      class="tree-node tree-level-3"
+                      :class="{ active: selectedCatId === grandchild.id }"
+                      @click="selectCategory(grandchild.id)"
+                    >
+                      {{ grandchild.name }}
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
-          </div>
+          </template>
         </div>
         <div v-if="!categories.length && !loading" class="empty-tree">暂无分类</div>
       </aside>
@@ -95,6 +113,7 @@ const loading = ref(true)
 const categories = ref<CategoryTree[]>([])
 const products = ref<SpuPageItem[]>([])
 const selectedCatId = ref<number | null>(null)
+const expandedCatIds = ref<Set<number>>(new Set())
 const currentSort = ref('default')
 const pageNum = ref(1)
 const pageSize = 20
@@ -121,7 +140,39 @@ const currentCatName = computed(() => {
   return find(categories.value) || '全部商品'
 })
 
+/** 在树中查找节点及其父链 */
+function findNodeInTree(
+  list: CategoryTree[],
+  targetId: number,
+  parents: CategoryTree[] = [],
+): { node: CategoryTree; parents: CategoryTree[] } | null {
+  for (const node of list) {
+    if (node.id === targetId) return { node, parents }
+    if (node.children?.length) {
+      const found = findNodeInTree(node.children, targetId, [...parents, node])
+      if (found) return found
+    }
+  }
+  return null
+}
+
 function selectCategory(catId: number) {
+  const found = findNodeInTree(categories.value, catId)
+  const hasChildren = found?.node.children && found.node.children.length > 0
+
+  if (hasChildren) {
+    // 有子节点：只展开/折叠，不筛选商品
+    const ids = new Set(expandedCatIds.value)
+    if (ids.has(catId)) {
+      ids.delete(catId)
+    } else {
+      ids.add(catId)
+    }
+    expandedCatIds.value = ids
+    return
+  }
+
+  // 叶子节点：选中筛选商品（再次点击取消）
   selectedCatId.value = selectedCatId.value === catId ? null : catId
   pageNum.value = 1
   router.replace({ query: selectedCatId.value ? { id: String(selectedCatId.value) } : {} })
@@ -140,6 +191,7 @@ async function fetchProducts() {
     const params: Record<string, any> = {
       pageNum: pageNum.value,
       pageSize,
+      status: 1,
     }
     if (selectedCatId.value) params.categoryId = selectedCatId.value
 
@@ -163,6 +215,14 @@ onMounted(async () => {
   try {
     const res: any = await getCategoryTree()
     categories.value = res.data || []
+
+    // 如果有选中的分类，自动展开其父链
+    if (selectedCatId.value) {
+      const found = findNodeInTree(categories.value, selectedCatId.value)
+      if (found?.parents.length) {
+        expandedCatIds.value = new Set(found.parents.map(p => p.id))
+      }
+    }
   } catch {
     // 静默处理
   }
@@ -224,61 +284,65 @@ watch(
   margin-bottom: 4px;
 }
 
-.tree-parent {
+.tree-node {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--color-charcoal);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  font-family: var(--font-body);
 }
 
-.tree-parent:hover {
+/* 一级分类 */
+.tree-level-1 {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-charcoal);
+}
+
+/* 二级分类 */
+.tree-level-2 {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+/* 三级分类 */
+.tree-level-3 {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tree-node:hover {
   background: var(--color-surface);
+  color: var(--color-charcoal);
 }
 
-.tree-parent.active {
+.tree-node.active {
   background: var(--color-amber);
   color: #fff;
 }
 
-.tree-parent.active .expand-icon {
+.tree-node.active .expand-icon {
   color: #fff;
 }
 
 .expand-icon {
   font-size: 12px;
   color: var(--color-text-muted);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.expand-icon.expanded {
+  transform: rotate(90deg);
 }
 
 .tree-children {
   padding-left: 12px;
-}
-
-.tree-child {
-  padding: 7px 12px;
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--color-text);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.tree-child:hover {
-  background: var(--color-surface);
-  color: var(--color-charcoal);
-}
-
-.tree-child.active {
-  color: var(--color-amber);
-  font-weight: 500;
-  background: rgba(212, 165, 116, 0.08);
 }
 
 .empty-tree {

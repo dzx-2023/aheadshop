@@ -53,6 +53,12 @@
                   <el-dropdown-item command="order">
                     <el-icon><List /></el-icon>我的订单
                   </el-dropdown-item>
+                  <el-dropdown-item command="refund">
+                    <el-icon><Money /></el-icon>退款记录
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="isAdmin" command="admin">
+                    <el-icon><Setting /></el-icon>后台管理
+                  </el-dropdown-item>
                   <el-dropdown-item divided command="logout">
                     <el-icon><SwitchButton /></el-icon>退出登录
                   </el-dropdown-item>
@@ -105,11 +111,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
 import { useCartStore } from '@/store/modules/cart'
-import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton } from '@element-plus/icons-vue'
+import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton, Setting, Money } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,6 +124,11 @@ const cartStore = useCartStore()
 
 const searchQuery = ref('')
 const isScrolled = ref(false)
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || []
+  return roles.includes('ADMIN') || roles.includes('admin')
+})
 
 function handleScroll() {
   isScrolled.value = window.scrollY > 10
@@ -149,6 +160,12 @@ function handleCommand(command: string) {
       break
     case 'order':
       router.push('/order')
+      break
+    case 'refund':
+      router.push('/refund')
+      break
+    case 'admin':
+      router.push('/admin')
       break
     case 'logout':
       userStore.logout()
@@ -384,13 +401,13 @@ function handleCommand(command: string) {
 }
 
 .footer-inner {
-  max-width: 1280px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 48px 32px 24px;
+  padding: 24px 32px 16px;
 }
 
 .footer-brand {
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 
 .footer-brand .logo-text {
@@ -412,7 +429,7 @@ function handleCommand(command: string) {
 .footer-links {
   display: flex;
   gap: 64px;
-  margin-bottom: 32px;
+  margin-bottom: 16px;
 }
 
 .footer-col h4 {

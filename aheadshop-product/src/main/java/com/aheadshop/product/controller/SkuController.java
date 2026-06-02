@@ -18,7 +18,7 @@ public class SkuController {
 
     @Operation(summary = "SKU 详情")
     @GetMapping("/{id}")
-    public Result<SkuInfoVO> detail(@PathVariable Long id) {
+    public Result<SkuInfoVO> detail(@PathVariable("id") Long id) {
         return Result.success(skuService.getSkuInfo(id));
     }
 }

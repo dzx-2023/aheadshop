@@ -13,4 +13,7 @@ public interface OrderFeignClient {
 
     @PutMapping("/pay-success/{orderNo}")
     Result<Void> paySuccess(@PathVariable("orderNo") String orderNo);
+
+    @PutMapping("/refund-success/{orderNo}")
+    Result<Void> refundSuccess(@PathVariable("orderNo") String orderNo);
 }

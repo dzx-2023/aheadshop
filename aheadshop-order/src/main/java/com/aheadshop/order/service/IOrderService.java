@@ -27,10 +27,12 @@ public interface IOrderService {
 
     void paySuccess(String orderNo);
 
+    void refundSuccess(String orderNo);
+
     // 管理端接口
     PageResult<OrderPageVO> adminListOrders(Integer status, Integer pageNum, Integer pageSize);
 
-    void shipOrder(String orderNo);
+    void shipOrder(String orderNo, String trackingNumber);
 
     Long todayOrderCount();
 

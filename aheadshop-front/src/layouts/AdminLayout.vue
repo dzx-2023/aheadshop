@@ -31,6 +31,18 @@
             <el-icon><User /></el-icon>
             <template #title>用户管理</template>
           </el-menu-item>
+          <el-menu-item index="/admin/refunds">
+            <el-icon><Money /></el-icon>
+            <template #title>退款管理</template>
+          </el-menu-item>
+          <el-menu-item index="/admin/categories">
+            <el-icon><Menu /></el-icon>
+            <template #title>分类管理</template>
+          </el-menu-item>
+          <el-menu-item index="/admin/backgrounds">
+            <el-icon><Picture /></el-icon>
+            <template #title>背景管理</template>
+          </el-menu-item>
         </el-menu>
       </el-scrollbar>
     </aside>
@@ -82,7 +94,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
-import { Odometer, Goods, List, User, Fold, Expand, Monitor, ArrowDown } from '@element-plus/icons-vue'
+import { Odometer, Goods, List, User, Menu, Money, Picture, Fold, Expand, Monitor, ArrowDown } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -93,11 +105,22 @@ const isCollapsed = ref(false)
 const titleMap: Record<string, string> = {
   '/admin/dashboard': '仪表盘',
   '/admin/products': '商品管理',
+  '/admin/products/add': '新增商品',
   '/admin/orders': '订单管理',
   '/admin/users': '用户管理',
+  '/admin/refunds': '退款管理',
+  '/admin/categories': '分类管理',
+  '/admin/backgrounds': '背景管理',
 }
 
-const currentTitle = computed(() => titleMap[route.path] || '')
+const currentTitle = computed(() => {
+  // 精确匹配
+  if (titleMap[route.path]) return titleMap[route.path]
+  // 动态路由前缀匹配
+  if (route.path.startsWith('/admin/products/edit/')) return '编辑商品'
+  if (route.path.startsWith('/admin/orders/')) return '订单详情'
+  return ''
+})
 
 const handleCommand = (cmd: string) => {
   if (cmd === 'logout') {

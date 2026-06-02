@@ -132,9 +132,29 @@ public class SpuServiceImpl extends ServiceImpl<SpuMapper, Spu> implements ISpuS
     }
 
     @Override
-    public IPage<SpuPageVO> queryPage(String keyword, Long categoryId, Long brandId, int pageNum, int pageSize) {
+    public IPage<SpuPageVO> queryPage(String keyword, Long categoryId, Long brandId, Integer status, int pageNum, int pageSize) {
         Page<SpuPageVO> page = new Page<>(pageNum, pageSize);
-        return baseMapper.selectSpuPage(page, keyword, categoryId, brandId);
+        if (categoryId != null) {
+            // 收集该分类及其所有子孙分类的 ID
+            List<Long> categoryIds = collectDescendantIds(categoryId);
+            return baseMapper.selectSpuPageInCategories(page, keyword, categoryIds, brandId, status);
+        }
+        return baseMapper.selectSpuPage(page, keyword, null, brandId, status);
+    }
+
+    /**
+     * 递归收集 categoryId 及其所有子孙分类的 ID
+     */
+    private List<Long> collectDescendantIds(Long categoryId) {
+        List<Long> result = new ArrayList<>();
+        result.add(categoryId);
+        List<Category> children = categoryMapper.selectList(
+                new LambdaQueryWrapper<Category>().eq(Category::getParentId, categoryId)
+        );
+        for (Category child : children) {
+            result.addAll(collectDescendantIds(child.getId()));
+        }
+        return result;
     }
 
     @Override

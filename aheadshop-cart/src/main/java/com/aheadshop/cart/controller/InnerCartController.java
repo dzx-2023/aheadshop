@@ -20,13 +20,13 @@ public class InnerCartController {
 
     @Operation(summary = "获取已勾选商品")
     @GetMapping("/checked/{userId}")
-    public Result<List<CartItem>> getCheckedItems(@PathVariable Long userId) {
+    public Result<List<CartItem>> getCheckedItems(@PathVariable("userId") Long userId) {
         return Result.success(cartService.getCheckedItems(userId));
     }
 
     @Operation(summary = "清除已勾选商品")
     @DeleteMapping("/checked/{userId}")
-    public Result<Void> clearCheckedItems(@PathVariable Long userId) {
+    public Result<Void> clearCheckedItems(@PathVariable("userId") Long userId) {
         cartService.clearCheckedItems(userId);
         return Result.success(null);
     }

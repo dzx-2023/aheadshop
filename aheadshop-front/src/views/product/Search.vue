@@ -94,6 +94,7 @@ async function fetchProducts() {
     const params: Record<string, any> = {
       pageNum: pageNum.value,
       pageSize,
+      status: 1,
     }
     if (keyword.value) params.keyword = keyword.value
 

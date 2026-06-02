@@ -10,6 +10,7 @@ public final class BusinessExceptionCode {
     public static final int FORBIDDEN = 403;
     public static final int NOT_FOUND = 404;
     public static final int SERVER_ERROR = 500;
+    public static final int SYSTEM_ERROR = 500;
 
     // 用户模块 10xxx
     public static final int USER_EXISTS = 10001;
@@ -30,4 +31,6 @@ public final class BusinessExceptionCode {
     // 支付模块 40xxx
     public static final int PAY_CREATE_FAIL = 40001;
     public static final int PAY_ORDER_EXPIRED = 40002;
+
+
 }

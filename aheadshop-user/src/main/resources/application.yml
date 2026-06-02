@@ -28,8 +28,8 @@ spring:
     password: 1551974285
   servlet:
     multipart:
-      max-file-size: 2MB
-      max-request-size: 5MB
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 # 头像上传配置
 upload:

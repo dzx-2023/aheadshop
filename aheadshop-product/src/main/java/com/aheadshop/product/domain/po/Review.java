@@ -17,7 +17,7 @@ public class Review implements Serializable {
     private Long userId;
     private Long spuId;
     private Long skuId;
-    private Long orderId;
+    private String orderNo;
     private Integer score;
     private String content;
     private String images;

@@ -272,7 +272,8 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { User, List, Location, ChatDotRound, Plus } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/modules/user'
 import { getUserInfo, updateUserInfo, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/api/user'
-import { getMyReviews, submitReview, getSpuDetail } from '@/api/product'
+import { getMyReviews, submitReview, checkReviewed } from '@/api/product'
+import { getOrderDetail } from '@/api/order'
 import { getOrderList } from '@/api/order'
 import type { AddressItem, AddressForm } from '@/types/address'
 import type { ReviewItem } from '@/types/product'
@@ -470,7 +471,7 @@ const reviewFormRef = ref<FormInstance>()
 const reviewForm = reactive({
   spuId: 0,
   skuId: 0,
-  orderId: 0,
+  orderNo: '',
   score: 5,
   content: '',
   images: '',
@@ -494,25 +495,42 @@ const loadPendingOrders = async () => {
   try {
     const res = await getOrderList({ status: 4, pageNum: 1, pageSize: 50 })
     const allOrders = res.data?.records || []
-    // 过滤掉已评价的订单（简化处理，实际可在后端过滤）
-    pendingOrders.value = allOrders.slice(0, 5)
+    // 过滤掉已评价的订单
+    const unchecked: typeof allOrders = []
+    for (const order of allOrders) {
+      if (unchecked.length >= 5) break
+      try {
+        const checkRes: any = await checkReviewed(order.orderNo)
+        if (!checkRes.data) unchecked.push(order)
+      } catch {
+        unchecked.push(order)
+      }
+    }
+    pendingOrders.value = unchecked
   } catch {
     pendingOrders.value = []
   }
 }
 
-const openReviewDialog = (order: OrderPageItem) => {
-  // 从订单中取第一个商品的 spuId/skuId（简化处理）
-  Object.assign(reviewForm, {
-    spuId: (order as any).spuId || 0,
-    skuId: (order as any).skuId || 0,
-    orderId: (order as any).id || 0,
-    score: 5,
-    content: '',
-    images: '',
-    isAnonymous: 0,
-  })
-  reviewDialogVisible.value = true
+const openReviewDialog = async (order: OrderPageItem) => {
+  try {
+    // 获取订单详情以拿到商品的 spuId/skuId
+    const res: any = await getOrderDetail(order.orderNo)
+    const detail = res.data
+    const firstItem = detail?.items?.[0]
+    Object.assign(reviewForm, {
+      spuId: firstItem?.spuId || 0,
+      skuId: firstItem?.skuId || 0,
+      orderNo: order.orderNo,
+      score: 5,
+      content: '',
+      images: '',
+      isAnonymous: 0,
+    })
+    reviewDialogVisible.value = true
+  } catch {
+    ElMessage.error('获取订单信息失败')
+  }
 }
 
 const handleSubmitReview = async () => {

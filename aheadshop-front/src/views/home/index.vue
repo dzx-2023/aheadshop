@@ -1,36 +1,40 @@
 <template>
   <div class="home">
-    <!-- 轮播图 -->
-    <section class="hero-banner">
-      <el-carousel height="420px" :interval="5000" arrow="hover" indicator-position="outside">
-        <el-carousel-item v-for="banner in banners" :key="banner.id">
-          <div class="banner-slide" :style="{ background: banner.bg }">
-            <div class="banner-content">
-              <h2 class="banner-title">{{ banner.title }}</h2>
-              <p class="banner-desc">{{ banner.desc }}</p>
-              <router-link to="/category" class="banner-btn">立即探索</router-link>
-            </div>
-          </div>
-        </el-carousel-item>
-      </el-carousel>
-    </section>
+    <!-- Hero: 左侧分类 + 右侧轮播 -->
+    <section class="hero-section">
+      <div class="hero-inner">
+        <!-- 左侧分类列表 -->
+        <aside class="hero-category">
+          <div class="category-list-title">全部分类</div>
+          <nav class="category-list">
+            <router-link
+              v-for="cat in categories"
+              :key="cat.id"
+              :to="`/category?id=${cat.id}`"
+              class="category-row"
+            >
+              <div class="category-icon" v-html="getCategoryIcon(cat.name)"></div>
+              <span class="category-name">{{ cat.name }}</span>
+              <span class="category-arrow">›</span>
+            </router-link>
+          </nav>
+          <div v-if="!categories.length && !loading" class="category-empty">暂无分类</div>
+        </aside>
 
-    <!-- 分类导航 -->
-    <section class="category-nav">
-      <div class="section-inner">
-        <h3 class="section-title">商品分类</h3>
-        <div class="category-grid">
-          <router-link
-            v-for="cat in categories"
-            :key="cat.id"
-            :to="`/category?id=${cat.id}`"
-            class="category-item"
-          >
-            <div class="category-icon">{{ cat.icon || '📦' }}</div>
-            <span class="category-name">{{ cat.name }}</span>
-          </router-link>
+        <!-- 右侧轮播图 -->
+        <div class="hero-banner">
+          <el-carousel height="420px" :interval="5000" arrow="hover" indicator-position="outside">
+            <el-carousel-item v-for="banner in banners" :key="banner.id">
+              <div class="banner-slide" :style="{ background: banner.bg }">
+                <div class="banner-content">
+                  <h2 class="banner-title">{{ banner.title }}</h2>
+                  <p class="banner-desc">{{ banner.desc }}</p>
+                  <router-link to="/category" class="banner-btn">立即探索</router-link>
+                </div>
+              </div>
+            </el-carousel-item>
+          </el-carousel>
         </div>
-        <div v-if="!categories.length && !loading" class="empty-hint">暂无分类数据</div>
       </div>
     </section>
 
@@ -69,6 +73,54 @@ const loading = ref(true)
 const products = ref<SpuPageItem[]>([])
 const categories = ref<CategoryTree[]>([])
 
+/** 分类名称 → SVG 图标映射（手绘线条风格） */
+function getCategoryIcon(name: string): string {
+  const icons: Record<string, string> = {
+    '手机数码': `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="14" y="4" width="20" height="40" rx="3" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="14" y1="10" x2="34" y2="10" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="14" y1="36" x2="34" y2="36" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <circle cx="24" cy="40" r="1.5" fill="#d4a574"/>
+      <path d="M20 7h8" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+    '电脑办公': `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="8" width="36" height="24" rx="2.5" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="6" y1="28" x2="42" y2="28" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M18 32h12" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M20 36h8" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M12 14l4 4-4 4" stroke="#d4a574" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="20" y1="22" x2="30" y2="22" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+    '家用电器': `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="6" width="28" height="36" rx="3" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="24" cy="28" r="8" stroke="#2d2926" stroke-width="2.2"/>
+      <circle cx="24" cy="28" r="3" fill="#d4a574"/>
+      <line x1="10" y1="14" x2="38" y2="14" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round"/>
+      <line x1="16" y1="10" x2="16" y2="14" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+      <line x1="24" y1="10" x2="24" y2="14" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+      <line x1="32" y1="10" x2="32" y2="14" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+    '服饰鞋包': `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16 6L8 14v4l6 2v22h20V20l6-2v-4L32 6" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M16 6c0 4 3.5 7 8 7s8-3 8-7" stroke="#2d2926" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <line x1="24" y1="13" x2="24" y2="26" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+      <line x1="18" y1="20" x2="30" y2="20" stroke="#d4a574" stroke-width="2" stroke-linecap="round"/>
+    </svg>`,
+  }
+  // 精确匹配
+  if (icons[name]) return icons[name]
+  // 模糊匹配
+  if (name.includes('手机') || name.includes('数码')) return icons['手机数码']
+  if (name.includes('电脑') || name.includes('办公')) return icons['电脑办公']
+  if (name.includes('家电') || name.includes('电器')) return icons['家用电器']
+  if (name.includes('服饰') || name.includes('鞋') || name.includes('包')) return icons['服饰鞋包']
+  // 默认图标
+  return `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="8" y="8" width="32" height="32" rx="4" stroke="#2d2926" stroke-width="2.2"/>
+    <path d="M16 24h16M24 16v16" stroke="#d4a574" stroke-width="2.2" stroke-linecap="round"/>
+  </svg>`
+}
+
 // 静态轮播图数据
 const banners = [
   {
@@ -95,7 +147,7 @@ onMounted(async () => {
   try {
     const [catRes, spuRes] = await Promise.allSettled([
       getCategoryTree(),
-      getSpuList({ pageNum: 1, pageSize: 12 }),
+      getSpuList({ pageNum: 1, pageSize: 12, status: 1 }),
     ])
     if (catRes.status === 'fulfilled') {
       categories.value = (catRes.value as any).data || []
@@ -117,9 +169,135 @@ onMounted(async () => {
   background: var(--color-cream);
 }
 
-/* ── 轮播图 ── */
+/* ── Hero: 分类 + 轮播 ── */
+.hero-section {
+  padding: 24px 0 40px;
+}
+
+.hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  gap: 16px;
+  height: 420px;
+}
+
+/* 左侧分类栏 */
+.hero-category {
+  width: 220px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(232, 228, 223, 0.5);
+  border-radius: 14px;
+  padding: 16px 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.category-list-title {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  padding: 0 20px 12px;
+  border-bottom: 1px solid rgba(232, 228, 223, 0.5);
+  margin-bottom: 8px;
+}
+
+.category-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+
+.category-row:hover {
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.category-row .category-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.12) 0%, rgba(212, 165, 116, 0.04) 100%);
+  border-radius: 10px;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.category-row .category-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
+}
+
+.category-row:hover .category-icon {
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.25) 0%, rgba(212, 165, 116, 0.1) 100%);
+  transform: scale(1.06);
+}
+
+.category-row .category-name {
+  flex: 1;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-charcoal);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.category-row .category-arrow {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.25s;
+}
+
+.category-row:hover .category-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--color-amber);
+}
+
+.category-empty {
+  text-align: center;
+  padding: 40px 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* 右侧轮播 */
 .hero-banner {
-  margin-bottom: 40px;
+  flex: 1;
+  min-width: 0;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+:deep(.el-carousel) {
+  border-radius: 14px;
 }
 
 :deep(.el-carousel__arrow) {
@@ -137,7 +315,7 @@ onMounted(async () => {
   width: 24px;
   height: 3px;
   border-radius: 2px;
-  background: #d0ccc7;
+  background: rgba(255, 255, 255, 0.4);
 }
 
 :deep(.el-carousel__indicator.is-active .el-carousel__button) {
@@ -150,7 +328,6 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
 }
 
 .banner-content {
@@ -235,48 +412,6 @@ onMounted(async () => {
   color: var(--color-amber);
 }
 
-/* ── 分类导航 ── */
-.category-nav {
-  padding: 40px 0;
-}
-
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 16px;
-}
-
-.category-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 20px 12px;
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid rgba(232, 228, 223, 0.6);
-  transition: all 0.3s;
-}
-
-.category-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(45, 41, 38, 0.08);
-  border-color: var(--color-amber);
-}
-
-.category-icon {
-  font-size: 28px;
-  line-height: 1;
-}
-
-.category-name {
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-charcoal);
-  text-align: center;
-}
-
 /* ── 推荐商品 ── */
 .recommend {
   padding: 40px 0 60px;
@@ -332,11 +467,48 @@ onMounted(async () => {
 
 /* ── 响应式 ── */
 @media (max-width: 768px) {
-  .banner-title { font-size: 24px; }
+  .hero-inner {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .hero-category {
+    width: 100%;
+    max-height: 200px;
+    border-radius: 12px;
+    padding: 12px 0;
+  }
+
+  .category-list-title {
+    padding: 0 16px 10px;
+  }
+
+  .category-list {
+    padding: 0 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .category-row {
+    padding: 8px 12px;
+    flex: 0 0 auto;
+  }
+
+  .category-row .category-arrow {
+    display: none;
+  }
+
+  .hero-banner {
+    border-radius: 12px;
+  }
+
+  .hero-banner :deep(.el-carousel) {
+    height: 200px !important;
+  }
+
+  .banner-title { font-size: 22px; letter-spacing: 1px; }
   .banner-desc { font-size: 13px; }
   .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .category-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .category-item { padding: 14px 8px; }
-  .category-icon { font-size: 24px; }
 }
 </style>

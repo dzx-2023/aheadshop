@@ -20,7 +20,7 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
         review.setUserId(userId);
         review.setSpuId(dto.getSpuId());
         review.setSkuId(dto.getSkuId());
-        review.setOrderId(dto.getOrderId());
+        review.setOrderNo(dto.getOrderNo());
         review.setScore(dto.getScore());
         review.setContent(dto.getContent());
         review.setImages(dto.getImages());
@@ -70,7 +70,7 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
                 .userId(r.getUserId())
                 .spuId(r.getSpuId())
                 .skuId(r.getSkuId())
-                .orderId(r.getOrderId())
+                .orderNo(r.getOrderNo())
                 .score(r.getScore())
                 .content(r.getContent())
                 .images(r.getImages())
@@ -81,9 +81,9 @@ public class ReviewServiceImpl extends ServiceImpl<ReviewMapper, Review> impleme
     }
 
     @Override
-    public boolean hasReviewed(Long orderId) {
+    public boolean hasReviewed(String orderNo) {
         return this.count(new LambdaQueryWrapper<Review>()
-                .eq(Review::getOrderId, orderId)
+                .eq(Review::getOrderNo, orderNo)
                 .eq(Review::getStatus, 1)) > 0;
     }
 }

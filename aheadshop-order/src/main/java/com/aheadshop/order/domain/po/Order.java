@@ -23,6 +23,7 @@ public class Order extends BaseEntity {
     private Integer payType;
     private LocalDateTime payTime;
     private LocalDateTime shipTime;
+    private String trackingNumber;
     private LocalDateTime receiveTime;
     private String receiverName;
     private String receiverPhone;

@@ -43,7 +43,7 @@ public class BrandController {
 
     @Operation(summary = "删除品牌")
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable("id") Long id) {
         brandService.deleteBrand(id);
         return Result.success(null);
     }

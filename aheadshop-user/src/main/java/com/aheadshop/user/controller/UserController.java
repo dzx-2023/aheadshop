@@ -105,7 +105,7 @@ public class UserController {
     @Operation(summary = "删除收货地址")
     @DeleteMapping("/address/{id}")
     public Result<Void> deleteAddress(@RequestHeader("X-User-Id") Long userId,
-                                      @PathVariable Long id) {
+                                      @PathVariable("id") Long id) {
         addressService.deleteAddress(userId, id);
         return Result.success(null);
     }
@@ -113,7 +113,7 @@ public class UserController {
     @Operation(summary = "设为默认地址")
     @PutMapping("/address/default/{id}")
     public Result<Void> setDefaultAddress(@RequestHeader("X-User-Id") Long userId,
-                                          @PathVariable Long id) {
+                                          @PathVariable("id") Long id) {
         addressService.setDefault(userId, id);
         return Result.success(null);
     }

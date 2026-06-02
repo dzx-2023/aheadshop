@@ -8,9 +8,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface SpuMapper extends BaseMapper<Spu> {
 
     IPage<SpuPageVO> selectSpuPage(Page<SpuPageVO> page, @Param("keyword") String keyword,
-                                   @Param("categoryId") Long categoryId, @Param("brandId") Long brandId);
+                                   @Param("categoryId") Long categoryId, @Param("brandId") Long brandId,
+                                   @Param("status") Integer status);
+
+    IPage<SpuPageVO> selectSpuPageInCategories(Page<SpuPageVO> page, @Param("keyword") String keyword,
+                                                @Param("categoryIds") List<Long> categoryIds, @Param("brandId") Long brandId,
+                                                @Param("status") Integer status);
 }

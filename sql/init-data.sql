@@ -168,3 +168,16 @@ INSERT INTO aheadshop_product.sku (id, spu_id, sku_name, specs, price, original_
 (501, 5, 'ThinkPad X1 Carbon i7 16GB+512GB 黑色', '{"颜色":"黑色","处理器":"i7","内存":"16GB","硬盘":"512GB"}', 9999.00, 11999.00, 80, 'https://img.aheadshop.com/sku/x1c-i7-black.jpg', 1),
 (601, 6, 'Sony WH-1000XM5 黑色', '{"颜色":"黑色"}', 2399.00, 2999.00, 500, 'https://img.aheadshop.com/sku/xm5-black.jpg', 1),
 (602, 6, 'Sony WH-1000XM5 银色', '{"颜色":"银色"}', 2399.00, 2999.00, 390, 'https://img.aheadshop.com/sku/xm5-silver.jpg', 1);
+
+-- 背景图表（继承 BaseEntity，需 deleted/version）
+-- DDL:
+-- CREATE TABLE aheadshop_product.background (
+--     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+--     image_url   VARCHAR(500) NOT NULL COMMENT '图片URL',
+--     sort_order  INT DEFAULT 0 COMMENT '排序',
+--     enabled     TINYINT DEFAULT 1 COMMENT '0=禁用 1=启用',
+--     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+--     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     deleted     TINYINT DEFAULT 0,
+--     version     INT DEFAULT 1
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='背景图';

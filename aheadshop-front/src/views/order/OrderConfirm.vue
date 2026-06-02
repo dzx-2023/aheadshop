@@ -143,10 +143,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, ArrowRight } from '@element-plus/icons-vue'
 import { getCartList } from '@/api/cart'
+import { getSkuInfo } from '@/api/product'
 import { getAddressList, addAddress } from '@/api/user'
 import { createOrder } from '@/api/order'
 import { useCartStore } from '@/store/modules/cart'
@@ -154,11 +155,14 @@ import type { CartItem } from '@/types/cart'
 import type { AddressItem, AddressForm } from '@/types/address'
 import type { FormInstance } from 'element-plus'
 
+const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 
 const placeholderImg = 'https://placehold.co/60x60/f5f3ef/d0ccc7?text=No+Image'
 const submitting = ref(false)
+const buyNowSkuId = ref<number | null>(null)
+const buyNowQuantity = ref(1)
 const remark = ref('')
 
 // 购物车商品（已勾选）
@@ -246,10 +250,16 @@ async function handleSubmit() {
   }
   submitting.value = true
   try {
-    const res: any = await createOrder({
+    const orderData: Record<string, any> = {
       addressId: selectedAddress.value.id,
       remark: remark.value || undefined,
-    })
+    }
+    // 直接购买模式传递 skuId 和 quantity
+    if (buyNowSkuId.value) {
+      orderData.skuId = buyNowSkuId.value
+      orderData.quantity = buyNowQuantity.value
+    }
+    const res: any = await createOrder(orderData)
     ElMessage.success('订单已创建')
     // 清空购物车已选
     cartStore.fetchCount().catch(() => {})
@@ -264,24 +274,53 @@ async function handleSubmit() {
 }
 
 onMounted(async () => {
-  try {
-    const [cartRes, addrRes] = await Promise.allSettled([getCartList(), getAddressList()])
-    if (cartRes.status === 'fulfilled') {
-      const allItems: CartItem[] = (cartRes.value as any).data || []
+  const skuId = Number(route.query.skuId)
+  const buyQuantity = Number(route.query.quantity) || 1
+
+  // 加载地址（两种模式都需要）
+  const addrRes = await getAddressList().catch(() => null)
+  if (addrRes) {
+    addressList.value = (addrRes as any).data || []
+    const defaultAddr = addressList.value.find((a) => a.isDefault)
+    if (defaultAddr) selectedAddress.value = defaultAddr
+    else if (addressList.value.length) selectedAddress.value = addressList.value[0]
+  }
+
+  if (skuId) {
+    // 立即购买模式
+    buyNowSkuId.value = skuId
+    buyNowQuantity.value = buyQuantity
+    try {
+      const skuRes: any = await getSkuInfo(skuId)
+      const sku = skuRes.data
+      if (sku) {
+        cartItems.value = [{
+          skuId: sku.id,
+          skuName: sku.skuName,
+          specs: sku.specs,
+          price: sku.price,
+          quantity: buyQuantity,
+          image: sku.image,
+          checked: 1,
+        } as CartItem]
+      }
+    } catch {
+      ElMessage.error('商品信息加载失败')
+      router.replace('/')
+    }
+  } else {
+    // 购物车模式：加载已勾选商品
+    try {
+      const cartRes: any = await getCartList()
+      const allItems: CartItem[] = cartRes.data || []
       cartItems.value = allItems.filter((i) => i.checked === 1)
       if (!cartItems.value.length) {
         ElMessage.warning('请先选择商品')
         router.replace('/cart')
       }
+    } catch {
+      // 静默处理
     }
-    if (addrRes.status === 'fulfilled') {
-      addressList.value = (addrRes.value as any).data || []
-      const defaultAddr = addressList.value.find((a) => a.isDefault)
-      if (defaultAddr) selectedAddress.value = defaultAddr
-      else if (addressList.value.length) selectedAddress.value = addressList.value[0]
-    }
-  } catch {
-    // 静默处理
   }
 })
 </script>
@@ -290,7 +329,7 @@ onMounted(async () => {
 .order-confirm {
   max-width: 900px;
   margin: 0 auto;
-  padding: 24px 20px 120px;
+  padding: 24px 20px 40px;
 }
 
 .page-title {
@@ -530,19 +569,21 @@ onMounted(async () => {
 
 /* ── 提交栏 ── */
 .submit-bar {
-  position: fixed;
+  position: sticky;
   bottom: 0;
-  left: 0;
-  right: 0;
   z-index: 50;
-  background: #fff;
-  border-top: 1px solid var(--color-border);
-  box-shadow: 0 -4px 16px rgba(45, 41, 38, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(232, 228, 223, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 -2px 20px rgba(45, 41, 38, 0.06);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 16px 32px;
+  padding: 16px 24px;
   gap: 24px;
+  margin-top: 16px;
 }
 
 .submit-info {
@@ -553,9 +594,10 @@ onMounted(async () => {
 
 .submit-price {
   font-family: 'DM Sans', sans-serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: #c44536;
+  letter-spacing: -0.5px;
 }
 
 .submit-btn {
@@ -563,11 +605,18 @@ onMounted(async () => {
   min-width: 160px;
   font-family: var(--font-body);
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 1px;
   background: var(--color-charcoal);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+  transition: all 0.25s;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--color-charcoal-light, #3d3935);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(45, 41, 38, 0.2);
 }
 
 /* ── 地址弹窗 ── */
@@ -612,7 +661,6 @@ onMounted(async () => {
 @media (max-width: 768px) {
   .goods-price { display: none; }
   .goods-qty { display: none; }
-  .submit-bar { padding: 12px 16px; }
-  .submit-price { font-size: 20px; }
+  .submit-price { font-size: 22px; }
 }
 </style>

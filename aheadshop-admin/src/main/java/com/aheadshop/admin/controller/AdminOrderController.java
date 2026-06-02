@@ -1,5 +1,6 @@
 package com.aheadshop.admin.controller;
 
+import com.aheadshop.admin.domain.vo.OrderDetailVO;
 import com.aheadshop.admin.domain.vo.OrderPageVO;
 import com.aheadshop.admin.feign.OrderFeignClient;
 import com.aheadshop.common.core.result.PageResult;
@@ -17,6 +18,12 @@ public class AdminOrderController {
 
     private final OrderFeignClient orderFeignClient;
 
+    @Operation(summary = "订单详情")
+    @GetMapping("/{orderNo}")
+    public Result<OrderDetailVO> detail(@PathVariable("orderNo") String orderNo) {
+        return orderFeignClient.getOrder(orderNo);
+    }
+
     @Operation(summary = "订单列表")
     @GetMapping("/list")
     public Result<PageResult<OrderPageVO>> list(
@@ -28,7 +35,8 @@ public class AdminOrderController {
 
     @Operation(summary = "发货")
     @PutMapping("/ship/{orderNo}")
-    public Result<Void> ship(@PathVariable("orderNo") String orderNo) {
-        return orderFeignClient.shipOrder(orderNo);
+    public Result<Void> ship(@PathVariable("orderNo") String orderNo,
+                             @RequestParam(value = "trackingNumber", required = false) String trackingNumber) {
+        return orderFeignClient.shipOrder(orderNo, trackingNumber);
     }
 }

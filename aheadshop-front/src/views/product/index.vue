@@ -151,12 +151,31 @@ const activeTab = ref('detail')
 const currentImageIndex = ref(0)
 const imageList = computed<string[]>(() => {
   if (!spu.value) return []
-  try {
-    const parsed = JSON.parse(spu.value.images)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return spu.value.mainImage ? [spu.value.mainImage] : []
+  const result: string[] = []
+  // 先加主图
+  if (spu.value.mainImage) result.push(spu.value.mainImage)
+  // 再加副图（支持 JSON 数组或逗号分隔）
+  if (spu.value.images) {
+    const raw = spu.value.images.trim()
+    if (raw.startsWith('[')) {
+      // JSON 数组格式
+      try {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+          for (const img of parsed) {
+            if (img && !result.includes(img)) result.push(img)
+          }
+        }
+      } catch { /* ignore */ }
+    } else {
+      // 逗号分隔格式
+      for (const img of raw.split(',')) {
+        const trimmed = img.trim()
+        if (trimmed && !result.includes(trimmed)) result.push(trimmed)
+      }
+    }
   }
+  return result
 })
 const currentImage = computed(() => imageList.value[currentImageIndex.value] || spu.value?.mainImage)
 
@@ -167,10 +186,11 @@ const selectedSpecs = ref<Record<string, string>>({})
 
 const selectedSku = computed<SkuItem | null>(() => {
   if (!spu.value?.skus?.length) return null
-  // 所有规格都选了才匹配
-  if (specGroups.value.length && Object.keys(selectedSpecs.value).length !== specGroups.value.length) {
-    return spu.value.skus[0] || null
+  // 未选任何规格时，默认第一个 SKU
+  if (!Object.keys(selectedSpecs.value).length) {
+    return spu.value.skus[0]
   }
+  // 按已选规格匹配
   return (
     spu.value.skus.find((sku) => {
       try {

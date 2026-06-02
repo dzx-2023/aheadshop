@@ -30,7 +30,7 @@ public class ReviewController {
     @Operation(summary = "SPU 评价列表")
     @GetMapping("/list/{spuId}")
     public Result<IPage<ReviewVO>> list(
-            @PathVariable Long spuId,
+            @PathVariable("spuId") Long spuId,
             @RequestParam(defaultValue = "1") int pageNum,
             @RequestParam(defaultValue = "10") int pageSize) {
         return Result.success(reviewService.listBySpuId(spuId, pageNum, pageSize));
@@ -38,7 +38,7 @@ public class ReviewController {
 
     @Operation(summary = "SPU 平均评分")
     @GetMapping("/avg-score/{spuId}")
-    public Result<Double> avgScore(@PathVariable Long spuId) {
+    public Result<Double> avgScore(@PathVariable("spuId") Long spuId) {
         return Result.success(reviewService.getAvgScore(spuId));
     }
 
@@ -52,8 +52,8 @@ public class ReviewController {
     }
 
     @Operation(summary = "检查订单是否已评价")
-    @GetMapping("/check/{orderId}")
-    public Result<Boolean> checkReviewed(@PathVariable Long orderId) {
-        return Result.success(reviewService.hasReviewed(orderId));
+    @GetMapping("/check/{orderNo}")
+    public Result<Boolean> checkReviewed(@PathVariable("orderNo") String orderNo) {
+        return Result.success(reviewService.hasReviewed(orderNo));
     }
 }

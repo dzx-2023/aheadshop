@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 @Builder
 public class OrderItemVO {
 
+    private Long spuId;
     private Long skuId;
     private String skuName;
     private String skuImage;
