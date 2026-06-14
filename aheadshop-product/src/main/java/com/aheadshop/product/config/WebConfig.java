@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${upload.product-dir:upload/product}")
+    @Value("${upload.product-dir:D:/Intelli J IDEA/IDEA 项目/aheadshop-plus/upload/product}")
     private String uploadDir;
 
     @Value("${upload.background-dir:D:/Intelli J IDEA/IDEA 项目/aheadshop-plus/upload/background}")

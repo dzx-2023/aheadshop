@@ -57,7 +57,7 @@ public class PayServiceImpl implements IPayService {
                         .eq(PayRecord::getStatus, PayStatus.WAIT_PAY.getCode()));
         if (existing != null) {
             // 已有待支付记录，直接返回
-            String payForm = buildAlipayForm(existing.getPayNo(), order);
+            String payForm = buildAlipayForm(existing.getPayNo(), order, dto.getReturnUrl());
             return PaySubmitVO.builder()
                     .payNo(existing.getPayNo())
                     .payForm(payForm)
@@ -76,7 +76,7 @@ public class PayServiceImpl implements IPayService {
         payRecordMapper.insert(record);
 
         // 4. 调用支付宝下单
-        String payForm = buildAlipayForm(payNo, order);
+        String payForm = buildAlipayForm(payNo, order, dto.getReturnUrl());
 
         return PaySubmitVO.builder()
                 .payNo(payNo)
@@ -247,7 +247,7 @@ public class PayServiceImpl implements IPayService {
         }
     }
 
-    private String buildAlipayForm(String payNo, OrderInfoVO order) {
+    private String buildAlipayForm(String payNo, OrderInfoVO order, String returnUrl) {
         try {
             AlipayClient alipayClient = new DefaultAlipayClient(
                     alipayConfig.getGatewayUrl(),
@@ -259,7 +259,8 @@ public class PayServiceImpl implements IPayService {
                     "RSA2");
 
             AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
-            request.setReturnUrl(alipayConfig.getReturnUrl());
+            // 优先使用前端传入的 returnUrl，否则用配置文件默认值
+            request.setReturnUrl(returnUrl != null && !returnUrl.isEmpty() ? returnUrl : alipayConfig.getReturnUrl());
             request.setNotifyUrl(alipayConfig.getNotifyUrl());
 
             request.setBizContent("{\"out_trade_no\":\"" + payNo + "\","

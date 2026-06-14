@@ -149,13 +149,17 @@ gateway:
       - /user/sms-code
       - /user/refresh-token
       - /api/product/detail/**
+      - /api/product/spu/**
       - /api/product/category/**
       - /api/product/list
+      - /api/product/brand/**
+      - /api/product/category-brand/**
       - /api/product/review/list/**
       - /api/product/review/avg-score/**
       - /upload/product/**
       - /upload/background/**
       - /api/product/background/active
+      - /api/pay/callback/**
       - /user/doc.html
       - /user/webjars/**
       - /user/v3/api-docs/**

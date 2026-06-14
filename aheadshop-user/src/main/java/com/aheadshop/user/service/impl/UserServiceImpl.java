@@ -170,7 +170,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             log.error("头像上传失败", e);
             throw new BusinessException(BusinessExceptionCode.SERVER_ERROR, "头像上传失败");
         }
-        return avatarUrlPrefix + fileName;
+        String avatarUrl = avatarUrlPrefix + fileName;
+
+        // 将头像 URL 写入数据库
+        User user = this.getById(userId);
+        if (user != null) {
+            user.setAvatar(avatarUrl);
+            this.updateById(user);
+        }
+
+        return avatarUrl;
     }
 
     // ========== 管理端接口 ==========
