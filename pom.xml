@@ -19,7 +19,6 @@
         <module>aheadshop-cart</module>
         <module>aheadshop-order</module>
         <module>aheadshop-pay</module>
-        <module>aheadshop-search</module>
         <module>aheadshop-admin</module>
     </modules>
 

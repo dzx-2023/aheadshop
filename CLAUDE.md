@@ -47,7 +47,6 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - **aheadshop-cart** (port 8083) — Skeleton (Redis-only, no DB)
 - **aheadshop-order** (port 8084) — Skeleton
 - **aheadshop-pay** (port 8085) — Skeleton
-- **aheadshop-search** (port 8086) — Skeleton (Elasticsearch, no MySQL)
 - **aheadshop-admin** (port 8087) — Skeleton (Feign aggregation, no DB)
 - **aheadshop-front** — Vue 3 + TypeScript + Vite frontend
 
@@ -71,16 +70,15 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 
 ### Middleware Per Service
 
-| Service | MySQL | Redis | RabbitMQ | Elasticsearch | OpenFeign | Sentinel |
-|---------|-------|-------|----------|---------------|-----------|----------|
-| gateway | — | Yes (reactive) | — | — | — | Yes |
-| user | Yes | Yes | — | — | Yes | Yes |
-| product | Yes | Yes | Yes | — | Yes | Yes |
-| cart | — | Yes | — | — | Yes | Yes |
-| order | Yes | Yes | Yes | — | Yes | Yes |
-| pay | Yes | Yes | Yes | — | Yes | Yes |
-| search | — | — | Yes | Yes | Yes | Yes |
-| admin | — | — | — | — | Yes | Yes |
+| Service | MySQL | Redis | RabbitMQ | OpenFeign | Sentinel |
+|---------|-------|-------|----------|-----------|----------|
+| gateway | — | Yes (reactive) | — | — | Yes |
+| user | Yes | Yes | — | Yes | Yes |
+| product | Yes | Yes | Yes | Yes | Yes |
+| cart | — | Yes | — | Yes | Yes |
+| order | Yes | Yes | Yes | Yes | Yes |
+| pay | Yes | Yes | Yes | Yes | Yes |
+| admin | — | — | — | Yes | Yes |
 
 ### Port Map
 
@@ -92,7 +90,6 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 | cart | 8083 |
 | order | 8084 |
 | pay | 8085 |
-| search | 8086 |
 | admin | 8087 |
 | frontend | 5173 |
 
@@ -103,7 +100,7 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - **Component scan**: Business services need `@SpringBootApplication(scanBasePackages = "com.aheadshop")` to pick up common module beans (CacheService, MybatisPlusConfig, etc.).
 - **Table naming**: Entity `@TableName` values use bare names (e.g., `"user"`) which differ from the DB design doc's `t_` prefix convention. Ensure DDL matches entity mappings.
 - **Nacos config**: Uses `spring.config.import: nacos:{app-name}.yml` (no bootstrap.yml). Namespace is `public` for dev.
-- **Message queue**: RabbitMQ (not RocketMQ). Used by product, order, pay, search services.
+- **Message queue**: RabbitMQ (not RocketMQ). Used by product, order, pay services.
 - **No bootstrap.yml**: All services use application.yml with `spring.config.import` for Nacos config center.
 
 ## Documentation

@@ -114,14 +114,6 @@ spring:
           filters:
             - StripPrefix=1
 
-        # 搜索服务
-        - id: search-service
-          uri: lb://aheadshop-search
-          predicates:
-            - Path=/api/search/**
-          filters:
-            - StripPrefix=1
-
         # 管理后台聚合
         - id: admin-service
           uri: lb://aheadshop-admin
@@ -164,7 +156,6 @@ gateway:
       - /upload/product/**
       - /upload/background/**
       - /api/product/background/active
-      - /api/search/**
       - /user/doc.html
       - /user/webjars/**
       - /user/v3/api-docs/**
