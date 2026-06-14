@@ -1,0 +1,83 @@
+{
+    "name": "AheadShop",
+    "appid": "__UNI__4E1B79A",
+    "description": "AheadShop 商城 App",
+    "versionName": "1.0.0",
+    "versionCode": "100",
+    "transformPx": false,
+    "app-plus": {
+        "usingComponents": true,
+        "nvueCompiler": "uni-app",
+        "nvueStyleCompiler": "uni-app",
+        "compilerVersion": 3,
+        "nvueLaunchMode": "fast",
+        "splashscreen": {
+            "alwaysShowBeforeRender": true,
+            "waiting": true,
+            "autoclose": true,
+            "delay": 0
+        },
+        "modules": {
+            "OAuth": {},
+            "Payment": {},
+            "Push": {},
+            "Share": {}
+        },
+        "distribute": {
+            "android": {
+                "permissions": [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
+                ]
+            },
+            "ios": {
+                "UIBackgroundModes": ["audio"]
+            },
+            "orientation": ["portrait-primary"]
+        },
+        "uniStatistics": {
+            "enable": true
+        }
+    },
+    "mp-weixin": {
+        "appid": "",
+        "setting": {
+            "urlCheck": false
+        },
+        "usingComponents": true,
+        "permission": {
+            "scope.userLocation": {
+                "desc": "用于获取您的收货地址"
+            }
+        },
+        "uniStatistics": {
+            "enable": true
+        }
+    },
+    "h5": {
+        "router": {
+            "mode": "history",
+            "base": ""
+        },
+        "async": {
+            "timeout": 20000
+        },
+        "uniStatistics": {
+            "enable": true
+        }
+    },
+    "vueVersion": "3",
+    "uniStatistics": {
+        "version": "2",
+        "enable": true
+    }
+}
