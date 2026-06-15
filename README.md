@@ -8,9 +8,9 @@ AheadShop-Plus — 小型微服务商城系统
 
 ## 快速开始
 # 前置条件
-1.启动nacos,版本>=2.5
-2.启动rqbbitmq
-3.要使用支付功能必须开内网穿透我使用的是cpolar , cpolar.exe http 8085
+- 启动nacos,版本>=2.5
+- 启动rqbbitmq
+- 要使用支付功能必须开内网穿透我使用的是cpolar , cpolar.exe http 8085
 
 
 ### 1.3 项目目标
