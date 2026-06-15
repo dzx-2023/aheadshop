@@ -12,6 +12,7 @@ AheadShop-Plus — 小型微服务商城系统
 - 启动rqbbitmq
 - 要使用支付功能必须开内网穿透我使用的是cpolar , cpolar.exe http 8085
 
+- 执行https://github.com/dzx-2023/aheadshop/blob/main/sql/aheadshop_all.sql
 
 ### 1.3 项目目标
 - 提供完整的 B2C 电商购物流程
