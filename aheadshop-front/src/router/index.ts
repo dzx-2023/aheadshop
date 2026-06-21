@@ -63,6 +63,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/user/index.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'sign',
+        name: 'Sign',
+        component: () => import('@/views/sign/index.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
   // 登录 / 注册（无布局，已登录不可访问）

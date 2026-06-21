@@ -15,6 +15,10 @@
           </router-link>
           <router-link to="/category" class="nav-link" :class="{ active: route.path.startsWith('/category') }">商品分类</router-link>
           <router-link to="/chat" class="nav-link" :class="{ active: route.path === '/chat' }">智能客服</router-link>
+          <router-link v-if="userStore.isLoggedIn()" to="/sign" class="nav-link sign-link" :class="{ active: route.path === '/sign' }">
+            <span v-if="!todaySigned" class="sign-dot" />
+            签到
+          </router-link>
           <div class="search-box">
             <el-input
               v-model="searchQuery"
@@ -59,6 +63,9 @@
                   </el-dropdown-item>
                   <el-dropdown-item command="refund">
                     <el-icon><Money /></el-icon>退款记录
+                  </el-dropdown-item>
+                  <el-dropdown-item command="sign">
+                    <el-icon><Calendar /></el-icon>每日签到
                   </el-dropdown-item>
                   <el-dropdown-item v-if="isAdmin" command="admin">
                     <el-icon><Setting /></el-icon>后台管理
@@ -115,11 +122,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
 import { useCartStore } from '@/store/modules/cart'
-import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton, Setting, Money, ChatDotRound } from '@element-plus/icons-vue'
+import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton, Setting, Money, ChatDotRound, Calendar } from '@element-plus/icons-vue'
+import { getSignStatus } from '@/api/sign'
 
 const route = useRoute()
 const router = useRouter()
@@ -128,6 +136,7 @@ const cartStore = useCartStore()
 
 const searchQuery = ref('')
 const isScrolled = ref(false)
+const todaySigned = ref(false)
 
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
@@ -144,11 +153,24 @@ onMounted(() => {
   if (userStore.isLoggedIn()) {
     userStore.fetchUserInfo().catch(() => {})
     cartStore.fetchCount().catch(() => {})
+    // 检查今日是否已签到
+    getSignStatus().then(res => {
+      todaySigned.value = res.data?.todaySigned || false
+    }).catch(() => {})
   }
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+})
+
+// 离开签到页面时刷新签到状态（更新红点）
+watch(() => route.path, (newPath, oldPath) => {
+  if (oldPath === '/sign' && newPath !== '/sign' && userStore.isLoggedIn()) {
+    getSignStatus().then(res => {
+      todaySigned.value = res.data?.todaySigned || false
+    }).catch(() => {})
+  }
 })
 
 function handleSearch() {
@@ -170,6 +192,9 @@ function handleCommand(command: string) {
       break
     case 'chat':
       router.push('/chat')
+      break
+    case 'sign':
+      router.push('/sign')
       break
     case 'admin':
       router.push('/admin')
@@ -276,6 +301,30 @@ function handleCommand(command: string) {
   height: 2px;
   background: #d4a574;
   border-radius: 1px;
+}
+
+/* 签到入口 */
+.sign-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sign-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.sign-link.active .sign-dot {
+  background: var(--color-cream);
 }
 
 /* 搜索框 */

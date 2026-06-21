@@ -40,4 +40,10 @@ public final class BusinessExceptionCode {
     public static final int CHAT_RATE_LIMIT = 50005;
     public static final int CHAT_DAILY_LIMIT = 50006;
 
+    // 签到积分模块 60xxx
+    public static final int SIGN_ALREADY_DONE = 60001;
+    public static final int SIGN_RETRO_LIMIT = 60002;
+    public static final int SIGN_RETRO_DATE_INVALID = 60003;
+    public static final int SIGN_POINTS_NOT_ENOUGH = 60004;
+
 }
