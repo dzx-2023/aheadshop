@@ -122,6 +122,20 @@ spring:
           filters:
             - StripPrefix=1
 
+        # AI 客服服务（HTTP 接口）
+        - id: aichat-api
+          uri: lb://aheadshop-aichat
+          predicates:
+            - Path=/api/chat/**
+          filters:
+            - StripPrefix=1
+
+        # AI 客服服务（WebSocket 流式对话）
+        - id: aichat-ws
+          uri: lb:ws://aheadshop-aichat
+          predicates:
+            - Path=/ws/chat/**
+
       # 默认过滤器
       default-filters:
         - DedupeResponseHeader=Vary Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
@@ -160,6 +174,7 @@ gateway:
       - /upload/background/**
       - /api/product/background/active
       - /api/pay/callback/**
+      - /ws/chat/**
       - /user/doc.html
       - /user/webjars/**
       - /user/v3/api-docs/**

@@ -47,12 +47,13 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - **aheadshop-cart** (port 8083) — Skeleton (Redis-only, no DB)
 - **aheadshop-order** (port 8084) — Skeleton
 - **aheadshop-pay** (port 8085) — Skeleton
+- **aheadshop-aichat** (port 8086) — AI客服服务, Spring AI + WebSocket 流式对话, RAG 知识检索
 - **aheadshop-admin** (port 8087) — Skeleton (Feign aggregation, no DB)
 - **aheadshop-front** — Vue 3 + TypeScript + Vite frontend
 
 ### Key Design Patterns
 
-- **Database per service**: 4 separate MySQL databases (`aheadshop_user`, `aheadshop_product`, `aheadshop_order`, `aheadshop_pay`)
+- **Database per service**: 5 separate MySQL databases (`aheadshop_user`, `aheadshop_product`, `aheadshop_order`, `aheadshop_pay`, `aheadshop_aichat`)
 - **Gateway auth flow**: `AuthGlobalFilter` validates JWT → injects `X-User-Id` / `X-User-Role` headers → downstream services read from headers
 - **Token management**: AuthService stores access+refresh tokens in Redis (`user:token:{id}`, `user:refresh:{id}`) for invalidation support
 - **Unified response**: All endpoints return `Result<T>` with `{code, msg, data}`
@@ -66,7 +67,7 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 |---------|------|------|-------|
 | Nacos | 127.0.0.1 | 8848 | Service discovery + config center, namespace `public` |
 | Redis | 127.0.0.1 | 6379 | DB 0, password `123456` |
-| MySQL | localhost | 3306 | 4 databases: `aheadshop_user`, `aheadshop_product`, `aheadshop_order`, `aheadshop_pay` |
+| MySQL | localhost | 3306 | 5 databases: `aheadshop_user`, `aheadshop_product`, `aheadshop_order`, `aheadshop_pay`, `aheadshop_aichat` |
 
 ### Middleware Per Service
 
@@ -78,6 +79,7 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 | cart | — | Yes | — | Yes | Yes |
 | order | Yes | Yes | Yes | Yes | Yes |
 | pay | Yes | Yes | Yes | Yes | Yes |
+| aichat | Yes | Yes | — | Yes | Yes |
 | admin | — | — | — | Yes | Yes |
 
 ### Port Map
@@ -90,6 +92,7 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 | cart | 8083 |
 | order | 8084 |
 | pay | 8085 |
+| aichat | 8086 |
 | admin | 8087 |
 | frontend | 5173 |
 
@@ -102,6 +105,7 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - **Nacos config**: Uses `spring.config.import: nacos:{app-name}.yml` (no bootstrap.yml). Namespace is `public` for dev.
 - **Message queue**: RabbitMQ (not RocketMQ). Used by product, order, pay services.
 - **No bootstrap.yml**: All services use application.yml with `spring.config.import` for Nacos config center.
+- **AI客服模块 (aichat)**: Uses Spring AI (OpenAI-compatible API) for LLM integration, WebSocket for streaming responses, Redis for conversation context caching, Feign for product knowledge retrieval (RAG). Design doc: `docs/7-AI客服系统设计文档.md`
 
 ## Documentation
 
@@ -110,4 +114,5 @@ Spring Boot 3.2.5 + Spring Cloud 2023.0.1 microservice e-commerce system. Java 1
 - `docs/3-系统数据库设计文档.md` — Full DDL for 17 tables across 4 databases
 - `docs/4-软件设计说明书.md` — Architecture, patterns, coding standards
 - `docs/5-开发流程与任务规划.md` — 40-day development plan with daily task checklists
+- `docs/7-AI客服系统设计文档.md` — AI客服系统设计文档 (aheadshop-aichat)
 - `sql/init-data.sql` — Seed data (users, roles, menus, categories, brands, SPUs, SKUs)

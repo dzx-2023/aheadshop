@@ -17,6 +17,7 @@ public class CartItem {
     private Long spuId;
     private String skuName;
     private String image;
+    private String spuMainImage;
     private BigDecimal price;
     private String specs;
     private Integer quantity;

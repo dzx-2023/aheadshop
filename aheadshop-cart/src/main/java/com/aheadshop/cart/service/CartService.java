@@ -45,11 +45,16 @@ public class CartService {
                 throw new RuntimeException("商品不存在");
             }
             SkuInfoVO skuInfo = result.getData();
+            String image = skuInfo.getImage();
+            if (image == null || image.isBlank()) {
+                image = skuInfo.getSpuMainImage();
+            }
             CartItem item = CartItem.builder()
                     .skuId(skuId)
                     .spuId(skuInfo.getSpuId())
                     .skuName(skuInfo.getSkuName())
-                    .image(skuInfo.getImage())
+                    .image(image)
+                    .spuMainImage(skuInfo.getSpuMainImage())
                     .price(skuInfo.getPrice())
                     .specs(skuInfo.getSpecs())
                     .quantity(quantity)
@@ -77,9 +82,15 @@ public class CartService {
             for (CartItem item : items) {
                 Result<SkuInfoVO> result = productFeignClient.getSkuInfo(item.getSkuId());
                 if (result != null && result.getCode() == 200 && result.getData() != null) {
-                    item.setPrice(result.getData().getPrice());
-                    item.setSkuName(result.getData().getSkuName());
-                    item.setImage(result.getData().getImage());
+                    SkuInfoVO skuInfo = result.getData();
+                    item.setPrice(skuInfo.getPrice());
+                    item.setSkuName(skuInfo.getSkuName());
+                    String img = skuInfo.getImage();
+                    if (img == null || img.isBlank()) {
+                        img = skuInfo.getSpuMainImage();
+                    }
+                    item.setImage(img);
+                    item.setSpuMainImage(skuInfo.getSpuMainImage());
                 }
             }
             // 回写更新后的数据

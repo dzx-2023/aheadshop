@@ -14,6 +14,7 @@
             首页
           </router-link>
           <router-link to="/category" class="nav-link" :class="{ active: route.path.startsWith('/category') }">商品分类</router-link>
+          <router-link to="/chat" class="nav-link" :class="{ active: route.path === '/chat' }">智能客服</router-link>
           <div class="search-box">
             <el-input
               v-model="searchQuery"
@@ -52,6 +53,9 @@
                   </el-dropdown-item>
                   <el-dropdown-item command="order">
                     <el-icon><List /></el-icon>我的订单
+                  </el-dropdown-item>
+                  <el-dropdown-item command="chat">
+                    <el-icon><ChatDotRound /></el-icon>智能客服
                   </el-dropdown-item>
                   <el-dropdown-item command="refund">
                     <el-icon><Money /></el-icon>退款记录
@@ -115,7 +119,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/store/modules/user'
 import { useCartStore } from '@/store/modules/cart'
-import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton, Setting, Money } from '@element-plus/icons-vue'
+import { Search, ShoppingCart, ArrowDown, User, List, SwitchButton, Setting, Money, ChatDotRound } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -163,6 +167,9 @@ function handleCommand(command: string) {
       break
     case 'refund':
       router.push('/refund')
+      break
+    case 'chat':
+      router.push('/chat')
       break
     case 'admin':
       router.push('/admin')

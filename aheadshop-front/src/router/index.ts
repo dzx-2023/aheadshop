@@ -144,6 +144,13 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
+  // 智能客服（全屏，无默认布局）
+  {
+    path: '/chat',
+    name: 'Chat',
+    component: () => import('@/views/chat/index.vue'),
+    meta: { requiresAuth: true },
+  },
   // 403
   {
     path: '/403',

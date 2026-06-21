@@ -23,9 +23,9 @@
             :model-value="item.checked === 1"
             @change="(val: boolean) => handleCheckItem(item, val)"
           />
-          <div class="item-info" @click="goDetail(item.skuId)">
+          <div class="item-info" @click="goDetail(item)">
             <div class="item-image">
-              <img :src="item.image || placeholderImg" :alt="item.skuName" />
+              <img :src="item.image || item.spuMainImage || placeholderImg" :alt="item.skuName" @error="(e: Event) => (e.target as HTMLImageElement).src = placeholderImg" />
             </div>
             <div class="item-detail">
               <h4 class="item-name">{{ item.skuName }}</h4>
@@ -236,10 +236,8 @@ async function handleDeleteChecked() {
 }
 
 // ── 跳转 ──
-function goDetail(skuId: number) {
-  // 通过 SKU 反查 SPU 不太方便，暂时用 skuId 跳转（后续可优化）
-  // 实际项目中 cartList 返回 spuId 更合理
-  router.push(`/product/${skuId}`)
+function goDetail(item: CartItem) {
+  router.push(`/product/${item.spuId}`)
 }
 
 function handleCheckout() {

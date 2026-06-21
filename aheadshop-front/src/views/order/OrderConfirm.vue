@@ -31,7 +31,7 @@
       <div class="goods-list">
         <div v-for="item in cartItems" :key="item.skuId" class="goods-item">
           <div class="goods-image">
-            <img :src="item.image || placeholderImg" :alt="item.skuName" />
+            <img :src="item.image || item.spuMainImage || placeholderImg" :alt="item.skuName" @error="(e: Event) => (e.target as HTMLImageElement).src = placeholderImg" />
           </div>
           <div class="goods-info">
             <h4 class="goods-name">{{ item.skuName }}</h4>
@@ -296,11 +296,13 @@ onMounted(async () => {
       if (sku) {
         cartItems.value = [{
           skuId: sku.id,
+          spuId: sku.spuId,
           skuName: sku.skuName,
           specs: sku.specs,
           price: sku.price,
           quantity: buyQuantity,
           image: sku.image,
+          spuMainImage: sku.spuMainImage,
           checked: 1,
         } as CartItem]
       }

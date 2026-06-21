@@ -20,6 +20,7 @@
         <module>aheadshop-order</module>
         <module>aheadshop-pay</module>
         <module>aheadshop-admin</module>
+        <module>aheadshop-aichat</module>
     </modules>
 
     <properties>

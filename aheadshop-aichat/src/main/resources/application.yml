@@ -1,0 +1,71 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: aheadshop-aichat
+  config:
+    import: nacos:aheadshop-aichat.yml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+      config:
+        server-addr: 127.0.0.1:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:localhost:8080}
+        port: 8719
+      eager: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/aheadshop_aichat?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1551974285
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      password: 123456
+  # Spring AI 配置（兼容 OpenAI 接口的模型服务：通义千问 / DeepSeek / OpenAI 等）
+  ai:
+    openai:
+      api-key: ${AI_API_KEY:your-api-key-here}
+      base-url: ${AI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${AI_MODEL:gpt-4o-mini}
+          temperature: 0.7
+
+mybatis-plus:
+  type-aliases-package: com.aheadshop.aichat.domain.po
+  configuration:
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+  global-config:
+    db-config:
+      update-strategy: not_null
+      id-type: auto
+
+feign:
+  okhttp:
+    enabled: true
+
+knife4j:
+  enable: true
+  openapi:
+    title: AI 客服服务接口
+    description: "AI 客服 — 智能对话 / 商品推荐 / 知识问答"
+    email: 1551974285@qq.com
+    concat: 枫溪
+    version: v1.0.0
+    group:
+      default:
+        group-name: default
+        api-rule: package
+        api-rule-resources:
+          - com.aheadshop.aichat.controller

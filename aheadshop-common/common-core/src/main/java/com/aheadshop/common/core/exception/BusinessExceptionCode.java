@@ -32,5 +32,12 @@ public final class BusinessExceptionCode {
     public static final int PAY_CREATE_FAIL = 40001;
     public static final int PAY_ORDER_EXPIRED = 40002;
 
+    // AI客服模块 50xxx
+    public static final int CHAT_SESSION_NOT_FOUND = 50001;
+    public static final int LLM_CALL_FAILED = 50002;
+    public static final int LLM_TIMEOUT = 50003;
+    public static final int LLM_INVALID_KEY = 50004;
+    public static final int CHAT_RATE_LIMIT = 50005;
+    public static final int CHAT_DAILY_LIMIT = 50006;
 
 }
