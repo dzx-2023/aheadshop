@@ -9,6 +9,7 @@ import com.aheadshop.common.core.util.SnowflakeIdWorker;
 import com.aheadshop.common.core.vo.SkuInfoVO;
 import com.aheadshop.order.config.RabbitMQConfig;
 import com.aheadshop.order.domain.dto.CreateOrderDTO;
+import com.aheadshop.order.domain.dto.OrderPaidMessage;
 import com.aheadshop.order.domain.dto.OrderQueryDTO;
 import com.aheadshop.order.domain.dto.StockDTO;
 import com.aheadshop.order.domain.po.Order;
@@ -301,6 +302,19 @@ public class OrderServiceImpl implements IOrderService {
         }
 
         saveLog(orderNo, "system", oldStatus, OrderStatus.PAID.getCode(), "支付成功");
+
+        // 发送订单支付 MQ 消息（用于佣金计算等）
+        try {
+            OrderPaidMessage paidMsg = new OrderPaidMessage();
+            paidMsg.setOrderNo(order.getOrderNo());
+            paidMsg.setUserId(order.getUserId());
+            paidMsg.setPayAmount(order.getPayAmount());
+            rabbitTemplate.convertAndSend("order.exchange", "order.paid", paidMsg);
+            log.info("订单 {} 支付消息已发送", orderNo);
+        } catch (Exception e) {
+            log.error("订单 {} 支付消息发送失败: {}", orderNo, e.getMessage());
+        }
+
         log.info("订单 {} 支付成功，状态已更新", orderNo);
     }
 
@@ -317,6 +331,15 @@ public class OrderServiceImpl implements IOrderService {
         orderMapper.updateById(order);
 
         saveLog(orderNo, "system", oldStatus, OrderStatus.REFUNDED.getCode(), "退款成功");
+
+        // 发送订单退款 MQ 消息（用于佣金冲销等）
+        try {
+            rabbitTemplate.convertAndSend("order.exchange", "order.refunded", new com.aheadshop.order.domain.dto.OrderRefundedMessage(orderNo));
+            log.info("订单 {} 退款消息已发送", orderNo);
+        } catch (Exception e) {
+            log.error("订单 {} 退款消息发送失败: {}", orderNo, e.getMessage());
+        }
+
         log.info("订单 {} 退款成功，状态已更新", orderNo);
     }
 

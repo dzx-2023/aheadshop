@@ -16,4 +16,6 @@ public class UserInfoVO {
     private String avatar;
     private Integer gender;
     private List<String> roles;
+    private String inviteCode;
+    private Long referrerId;
 }

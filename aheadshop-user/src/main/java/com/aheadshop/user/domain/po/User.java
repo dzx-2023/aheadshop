@@ -18,4 +18,6 @@ public class User extends BaseEntity {
     private String avatar;
     private Integer gender;
     private Integer status;
+    private String inviteCode;
+    private Long referrerId;
 }

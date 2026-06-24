@@ -69,6 +69,30 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/sign/index.vue'),
         meta: { requiresAuth: true },
       },
+      {
+        path: 'distribution',
+        name: 'Distribution',
+        component: () => import('@/views/distribution/index.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'distribution/team',
+        name: 'DistributionTeam',
+        component: () => import('@/views/distribution/Team.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'distribution/commission',
+        name: 'DistributionCommission',
+        component: () => import('@/views/distribution/Commission.vue'),
+        meta: { requiresAuth: true },
+      },
+      {
+        path: 'distribution/withdraw',
+        name: 'DistributionWithdraw',
+        component: () => import('@/views/distribution/Withdraw.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
   // 登录 / 注册（无布局，已登录不可访问）
@@ -147,6 +171,21 @@ const routes: RouteRecordRaw[] = [
         path: 'backgrounds',
         name: 'AdminBackgrounds',
         component: () => import('@/views/admin/Backgrounds.vue'),
+      },
+      {
+        path: 'distributors',
+        name: 'AdminDistributors',
+        component: () => import('@/views/admin/Distributors.vue'),
+      },
+      {
+        path: 'commission-manage',
+        name: 'AdminCommissionManage',
+        component: () => import('@/views/admin/CommissionManage.vue'),
+      },
+      {
+        path: 'withdraw-audit',
+        name: 'AdminWithdrawAudit',
+        component: () => import('@/views/admin/WithdrawAudit.vue'),
       },
     ],
   },

@@ -30,4 +30,7 @@ public interface IUserService extends IService<User> {
     void updateUserStatus(Long userId, Integer status);
 
     Long todayNewUserCount();
+
+    /** 通过邀请码查找用户 */
+    User getByInviteCode(String inviteCode);
 }

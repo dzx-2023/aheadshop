@@ -2,6 +2,7 @@ package com.aheadshop.user.controller;
 
 import com.aheadshop.common.core.result.PageResult;
 import com.aheadshop.common.core.result.Result;
+import com.aheadshop.user.domain.po.User;
 import com.aheadshop.user.domain.vo.AddressVO;
 import com.aheadshop.user.domain.vo.UserPageVO;
 import com.aheadshop.user.service.IAddressService;
@@ -47,5 +48,17 @@ public class InnerUserController {
     @GetMapping("/today-count")
     public Result<Long> todayNewUserCount() {
         return Result.success(userService.todayNewUserCount());
+    }
+
+    @Operation(summary = "根据ID获取用户")
+    @GetMapping("/{id}")
+    public Result<User> getUserById(@PathVariable("id") Long id) {
+        return Result.success(userService.getById(id));
+    }
+
+    @Operation(summary = "通过邀请码查找用户")
+    @GetMapping("/by-invite-code/{code}")
+    public Result<User> getByInviteCode(@PathVariable("code") String code) {
+        return Result.success(userService.getByInviteCode(code));
     }
 }

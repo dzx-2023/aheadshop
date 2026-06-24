@@ -11,6 +11,8 @@ export interface UserInfo {
   phone: string
   gender: number
   roles: string[]
+  inviteCode: string
+  referrerId: number | null
 }
 
 export interface LoginResult {

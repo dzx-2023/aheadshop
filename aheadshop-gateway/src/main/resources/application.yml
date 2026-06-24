@@ -122,6 +122,30 @@ spring:
           filters:
             - StripPrefix=1
 
+        # 分销服务 Knife4j 文档
+        - id: distribution-doc
+          uri: lb://aheadshop-distribution
+          predicates:
+            - Path=/distribution/doc.html,/distribution/webjars/**,/distribution/v3/api-docs/**
+          filters:
+            - StripPrefix=1
+
+        # 分销服务接口（Knife4j 调试）
+        - id: distribution-api
+          uri: lb://aheadshop-distribution
+          predicates:
+            - Path=/distribution/**
+          filters:
+            - StripPrefix=1
+
+        # 分销服务接口（前端正式请求）
+        - id: distribution-service
+          uri: lb://aheadshop-distribution
+          predicates:
+            - Path=/api/distribution/**
+          filters:
+            - StripPrefix=1
+
         # AI 客服服务（HTTP 接口）
         - id: aichat-api
           uri: lb://aheadshop-aichat

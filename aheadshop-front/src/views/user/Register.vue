@@ -31,6 +31,9 @@
           <el-form-item prop="phone">
             <el-input v-model="form.phone" placeholder="手机号（选填）" :prefix-icon="Iphone" clearable />
           </el-form-item>
+          <el-form-item prop="inviteCode">
+            <el-input v-model="form.inviteCode" placeholder="邀请码（选填）" :prefix-icon="Ticket" clearable maxlength="6" />
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" :loading="loading" class="register-btn" @click="handleRegister">
               {{ loading ? '注册中...' : '注 册' }}
@@ -48,18 +51,19 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { reactive, ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Iphone } from '@element-plus/icons-vue'
+import { User, Lock, Iphone, Ticket } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import request from '@/api/request'
 
 const router = useRouter()
+const route = useRoute()
 const formRef = ref<FormInstance>()
 const loading = ref(false)
 
-const form = reactive({ username: '', password: '', confirmPassword: '', phone: '' })
+const form = reactive({ username: '', password: '', confirmPassword: '', phone: '', inviteCode: '' })
 
 const rules = {
   username: [
@@ -81,14 +85,28 @@ const rules = {
     },
   ],
   phone: [{ pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }],
+  inviteCode: [{ pattern: /^[A-Z0-9]{6}$/, message: '邀请码为6位大写字母+数字', trigger: 'blur' }],
 }
+
+onMounted(() => {
+  // 从 URL 参数自动填充邀请码
+  const invite = route.query.invite as string
+  if (invite) {
+    form.inviteCode = invite.toUpperCase()
+  }
+})
 
 async function handleRegister() {
   const valid = await formRef.value?.validate().catch(() => false)
   if (!valid) return
   loading.value = true
   try {
-    await request.post('/user/register', { username: form.username, password: form.password, phone: form.phone || undefined })
+    await request.post('/user/register', {
+      username: form.username,
+      password: form.password,
+      phone: form.phone || undefined,
+      inviteCode: form.inviteCode || undefined,
+    })
     ElMessage.success('注册成功，请登录')
     router.push('/login')
   } catch {

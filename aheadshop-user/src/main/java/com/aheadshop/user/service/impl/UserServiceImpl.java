@@ -2,6 +2,7 @@ package com.aheadshop.user.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import com.aheadshop.common.core.exception.BusinessException;
 import com.aheadshop.common.core.exception.BusinessExceptionCode;
 import com.aheadshop.user.domain.dto.LoginDTO;
@@ -44,6 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     private final RoleMapper roleMapper;
     private final UserRoleMapper userRoleMapper;
     private final AuthService authService;
+    private final com.aheadshop.user.feign.DistributionFeignClient distributionFeignClient;
 
     @Value("${upload.avatar-path:D:/aheadshop/upload/avatar/}")
     private String avatarPath;
@@ -53,6 +55,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     private static final Long DEFAULT_ROLE_ID = 2L;
     private static final long MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+
+    private static final String INVITE_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final int INVITE_CODE_LENGTH = 6;
 
     @Override
     @Transactional
@@ -70,12 +75,52 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setEmail(dto.getEmail());
         user.setGender(0);
         user.setStatus(1);
+
+        // 自动生成 6 位邀请码
+        String inviteCode = generateUniqueInviteCode();
+        user.setInviteCode(inviteCode);
+
         this.save(user);
 
         UserRole userRole = new UserRole();
         userRole.setUserId(user.getId());
         userRole.setRoleId(DEFAULT_ROLE_ID);
         userRoleMapper.insert(userRole);
+
+        // 如果填写了邀请码，绑定推荐关系
+        if (dto.getInviteCode() != null && !dto.getInviteCode().isBlank()) {
+            try {
+                Long referrerUserId = distributionFeignClient.bindReferral(user.getId(), dto.getInviteCode()).getData();
+                if (referrerUserId != null) {
+                    user.setReferrerId(referrerUserId);
+                    this.updateById(user);
+                }
+            } catch (Exception e) {
+                log.warn("绑定推荐关系失败，用户注册不影响: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * 生成唯一的 6 位邀请码（大写字母+数字，排除易混淆字符）
+     */
+    private String generateUniqueInviteCode() {
+        String code;
+        int maxRetries = 20;
+        do {
+            StringBuilder sb = new StringBuilder(INVITE_CODE_LENGTH);
+            for (int i = 0; i < INVITE_CODE_LENGTH; i++) {
+                sb.append(INVITE_CODE_CHARS.charAt(RandomUtil.randomInt(INVITE_CODE_CHARS.length())));
+            }
+            code = sb.toString();
+            maxRetries--;
+        } while (this.count(new LambdaQueryWrapper<User>().eq(User::getInviteCode, code)) > 0 && maxRetries > 0);
+
+        if (maxRetries <= 0) {
+            // 极端情况：用 UUID 截取兜底
+            code = IdUtil.fastSimpleUUID().substring(0, 6).toUpperCase();
+        }
+        return code;
     }
 
     @Override
@@ -122,6 +167,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .avatar(user.getAvatar())
                 .gender(user.getGender())
                 .roles(roleKeys)
+                .inviteCode(user.getInviteCode())
+                .referrerId(user.getReferrerId())
                 .build();
     }
 
@@ -226,5 +273,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public Long todayNewUserCount() {
         LocalDateTime startOfDay = java.time.LocalDate.now().atStartOfDay();
         return this.count(new LambdaQueryWrapper<User>().ge(User::getCreateTime, startOfDay));
+    }
+
+    @Override
+    public User getByInviteCode(String inviteCode) {
+        return this.getOne(new LambdaQueryWrapper<User>().eq(User::getInviteCode, inviteCode));
     }
 }

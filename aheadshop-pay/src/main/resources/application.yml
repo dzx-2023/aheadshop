@@ -41,7 +41,7 @@ alipay:
   gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
   return-url: http://localhost:5173/pay/result
   # todo 需要更改内网穿透地址         账号：oxlqss3859@sandbox.com  密码：111111
-  notify-url: https://6f7620f2.r15.cpolar.top/pay/callback/alipay
+  notify-url:  https://11de8297.r21.vip.cpolar.cn/pay/callback/alipay
 
 logging:
   level:

@@ -21,6 +21,7 @@
         <module>aheadshop-pay</module>
         <module>aheadshop-admin</module>
         <module>aheadshop-aichat</module>
+        <module>aheadshop-distribution</module>
     </modules>
 
     <properties>

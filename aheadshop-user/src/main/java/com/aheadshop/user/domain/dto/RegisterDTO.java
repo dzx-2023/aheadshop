@@ -18,4 +18,7 @@ public class RegisterDTO {
     private String nickname;
     private String phone;
     private String email;
+
+    /** 邀请码（选填，注册时绑定推荐关系） */
+    private String inviteCode;
 }

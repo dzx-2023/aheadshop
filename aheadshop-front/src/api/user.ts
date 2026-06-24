@@ -6,7 +6,7 @@ export function login(data: { username: string; password: string }) {
 }
 
 /** 注册 */
-export function register(data: { username: string; password: string; phone?: string; nickname?: string }) {
+export function register(data: { username: string; password: string; phone?: string; nickname?: string; inviteCode?: string }) {
   return request.post('/user/register', data)
 }
 

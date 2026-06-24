@@ -46,4 +46,15 @@ public final class BusinessExceptionCode {
     public static final int SIGN_RETRO_DATE_INVALID = 60003;
     public static final int SIGN_POINTS_NOT_ENOUGH = 60004;
 
+    // 分销模块 70xxx
+    public static final int DISTRIBUTOR_NOT_FOUND   = 70001;
+    public static final int INVITE_CODE_INVALID     = 70002;
+    public static final int SELF_INVITE_NOT_ALLOWED = 70004;
+    public static final int ALREADY_BINDDED         = 70005;
+    public static final int COMMISSION_NOT_ENOUGH   = 70006;
+    public static final int WITHDRAW_MIN_AMOUNT     = 70007;
+    public static final int DISTRIBUTOR_DISABLED    = 70008;
+    public static final int NO_REFERRER_FOUND       = 70009;
+    public static final int UNBIND_NOT_ALLOWED      = 70010;
+
 }
