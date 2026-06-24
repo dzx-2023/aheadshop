@@ -1,5 +1,5 @@
 import request from './request'
-import type { RefundItem } from '@/types/order'
+
 
 /** 仪表盘总览数据 */
 export function getDashboardOverview() {

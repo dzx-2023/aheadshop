@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-carousel" ref="containerRef">
+  <div class="bg-carousel">
     <!-- 双层图片用于交叉渐变 -->
     <div
       class="bg-layer"
@@ -22,7 +22,7 @@ const images = ref<string[]>([])
 const activeLayer = ref(0)
 const currentIndex = ref(0)
 const layerImages = ref(['', ''])
-const containerRef = ref<HTMLElement | null>(null)
+
 
 let timer: ReturnType<typeof setInterval> | null = null
 

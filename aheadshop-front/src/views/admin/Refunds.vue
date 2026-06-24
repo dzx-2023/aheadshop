@@ -99,7 +99,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getRefundList, auditRefund } from '@/api/admin'
+import { getRefundList, auditRefund as auditRefundApi } from '@/api/admin'
 import { RefundStatusText, RefundTypeText } from '@/types/order'
 import type { RefundItem } from '@/types/order'
 
@@ -180,7 +180,7 @@ async function handleAudit() {
   if (!auditRefund.value) return
   auditLoading.value = true
   try {
-    await auditRefund(auditRefund.value.id, auditApproved.value, auditRemark.value || undefined)
+    await auditRefundApi(auditRefund.value.id, auditApproved.value, auditRemark.value || undefined)
     ElMessage.success(auditApproved.value ? '已同意退款' : '已拒绝退款')
     auditDialogVisible.value = false
     fetchRefunds()

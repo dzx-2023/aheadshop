@@ -141,7 +141,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { Picture } from '@element-plus/icons-vue'
 import { getAdminOrderDetail, shipOrder, getRefundByOrderNo, auditRefund } from '@/api/admin'
 import type { OrderDetail, RefundItem } from '@/types/order'

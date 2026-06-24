@@ -250,7 +250,7 @@ async function handleSubmit() {
   }
   submitting.value = true
   try {
-    const orderData: Record<string, any> = {
+    const orderData: { addressId: number; remark?: string; skuId?: number; quantity?: number } = {
       addressId: selectedAddress.value.id,
       remark: remark.value || undefined,
     }

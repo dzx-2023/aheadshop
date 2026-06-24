@@ -90,7 +90,7 @@
           <div v-for="order in orders" :key="order.orderNo" class="order-card" @click="router.push(`/order/${order.orderNo}`)">
             <div class="order-header">
               <span class="order-no">订单号：{{ order.orderNo }}</span>
-              <el-tag :type="getStatusType(order.status)" size="small">{{ order.statusText }}</el-tag>
+              <el-tag :type="getStatusType(order.status)" size="small">{{ getStatusText(order.status) }}</el-tag>
             </div>
             <div class="order-info">
               <span>{{ order.receiverName }} {{ order.receiverPhone }}</span>
@@ -242,7 +242,7 @@
 
     <!-- 评价弹窗 -->
     <el-dialog v-model="reviewDialogVisible" title="发表评价" width="500px">
-      <el-form :model="reviewForm" ref="reviewFormRef" label-width="80px">
+      <el-form :model="reviewForm" label-width="80px">
         <el-form-item label="评分">
           <el-rate v-model="reviewForm.score" show-text :texts="['差', '较差', '一般', '好', '非常好']" />
         </el-form-item>
@@ -265,7 +265,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -276,8 +276,8 @@ import { getMyReviews, submitReview, checkReviewed } from '@/api/product'
 import { getOrderDetail } from '@/api/order'
 import { getOrderList } from '@/api/order'
 import type { AddressItem, AddressForm } from '@/types/address'
-import type { ReviewItem } from '@/types/product'
 import type { OrderPageItem } from '@/types/order'
+import { OrderStatusText } from '@/types/order'
 import request from '@/api/request'
 
 const router = useRouter()
@@ -371,8 +371,12 @@ const loadOrders = async () => {
 }
 
 const getStatusType = (status: number) => {
-  const map: Record<number, string> = { 1: 'warning', 2: 'success', 3: 'primary', 4: '', 5: 'info', 6: 'danger', 7: 'danger' }
+  const map: Record<number, string> = { 0: 'warning', 1: 'success', 2: 'primary', 3: '', 4: 'info', 5: 'info', 6: 'danger', 7: 'danger' }
   return (map[status] || '') as any
+}
+
+const getStatusText = (status: number) => {
+  return OrderStatusText[status] || '未知'
 }
 
 // ========== 收货地址 ==========
@@ -467,7 +471,7 @@ const pendingOrders = ref<OrderPageItem[]>([])
 
 const reviewDialogVisible = ref(false)
 const reviewSubmitting = ref(false)
-const reviewFormRef = ref<FormInstance>()
+
 const reviewForm = reactive({
   spuId: 0,
   skuId: 0,
