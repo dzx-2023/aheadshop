@@ -106,8 +106,8 @@ const loadData = async () => {
       params.status = Number(activeStatus.value)
     }
     const res = await getCommissionList(params as any)
-    commissionList.value = res.data?.records || []
-    total.value = res.data?.total || 0
+    commissionList.value = res?.records || []
+    total.value = res?.total || 0
   } catch {
     // ignore
   } finally {
@@ -123,7 +123,7 @@ const handleTabChange = () => {
 onMounted(async () => {
   try {
     const res = await getCommissionSummary()
-    summary.value = res.data
+    summary.value = res
   } catch {
     // ignore
   }

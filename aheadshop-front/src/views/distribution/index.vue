@@ -114,7 +114,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getDistributionInfo, getCommissionSummary, getCommissionList } from '@/api/distribution'
+import { getDistributionInfo, getCommissionList } from '@/api/distribution'
 import type { DistributionInfo, CommissionRecord } from '@/types/distribution'
 import { CommissionStatusMap } from '@/types/distribution'
 
@@ -154,14 +154,14 @@ const copyLink = async () => {
 const loadData = async () => {
   try {
     const res = await getDistributionInfo()
-    info.value = res.data
+    info.value = res
   } catch {
     // 未开通分销商
   }
 
   try {
     const res = await getCommissionList({ pageNum: 1, pageSize: 5 })
-    recentCommissions.value = res.data?.records || []
+    recentCommissions.value = res?.records || []
   } catch {
     // ignore
   }

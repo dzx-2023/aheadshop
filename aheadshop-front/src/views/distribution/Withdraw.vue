@@ -109,8 +109,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await getWithdrawList({ pageNum: pageNum.value, pageSize })
-    withdrawList.value = res.data?.records || []
-    total.value = res.data?.total || 0
+    withdrawList.value = res?.records || []
+    total.value = res?.total || 0
   } catch {
     // ignore
   } finally {
@@ -121,7 +121,7 @@ const loadData = async () => {
 const loadBalance = async () => {
   try {
     const res = await getDistributionInfo()
-    availableBalance.value = res.data?.availableCommission || 0
+    availableBalance.value = res?.availableCommission || 0
   } catch {
     // ignore
   }

@@ -354,12 +354,11 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
-import { getUserInfo, updateUserInfo, getAddressList, addAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/api/user'
+import { getUserInfo, updateUserInfo, getAddressList, addAddress, updateAddress, deleteAddress } from '@/api/user'
 import { getDistributionInfo, getReferrerInfo, unbindReferral, getCommissionList, applyWithdraw } from '@/api/distribution'
 import type { DistributionInfo, ReferrerInfo, CommissionRecord } from '@/types/distribution'
 import { CommissionStatusMap } from '@/types/distribution'
 import type { AddressItem, AddressForm } from '@/types/address'
-import type { OrderPageItem } from '@/types/order'
 import { getOrderList } from '@/api/order'
 import request from '@/api/request'
 
@@ -619,21 +618,21 @@ onMounted(async () => {
   // 加载分销数据
   try {
     const res = await getDistributionInfo()
-    distInfo.value = res.data
+    distInfo.value = res
   } catch {
     // 未开通分销商
   }
 
   try {
     const res = await getReferrerInfo()
-    referrerInfo.value = res.data
+    referrerInfo.value = res
   } catch {
     // ignore
   }
 
   try {
     const res = await getCommissionList({ pageNum: 1, pageSize: 5 })
-    recentCommissions.value = res.data?.records || []
+    recentCommissions.value = res?.records || []
   } catch {
     // ignore
   }

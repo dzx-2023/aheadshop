@@ -61,8 +61,8 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await getTeamList({ pageNum: pageNum.value, pageSize })
-    teamList.value = res.data?.records || []
-    total.value = res.data?.total || 0
+    teamList.value = res?.records || []
+    total.value = res?.total || 0
   } catch {
     // ignore
   } finally {

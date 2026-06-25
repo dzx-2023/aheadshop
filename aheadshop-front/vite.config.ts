@@ -4,6 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
+  base: '/',  // 部署在根路径，如果子路径改为 '/app/' 等
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
@@ -21,5 +22,10 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,  // 生产环境不生成 sourcemap
   },
 })

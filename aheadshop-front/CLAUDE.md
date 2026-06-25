@@ -24,7 +24,7 @@ Vue 3 (Composition API + `<script setup lang="ts">`) · Vite 8 · TypeScript 6 �
 ### API Layer
 
 - [src/api/request.ts](src/api/request.ts) — Shared Axios instance with `baseURL: '/api'`. Auto-injects `Bearer` token from `localStorage`. Response interceptor unwraps `Result<T>` (`{code, msg, data}`) — callers receive `data` directly. 401 → redirect to `/login`.
-- Domain API files (`user.ts`, `product.ts`, `cart.ts`, `order.ts`, `admin.ts`, `pay.ts`) import the shared instance and export typed functions.
+- Domain API files (`user.ts`, `product.ts`, `cart.ts`, `order.ts`, `admin.ts`, `pay.ts`, `sign.ts`, `chat.ts`, `distribution.ts`, `adminDistribution.ts`) import the shared instance and export typed functions.
 - Backend response contract: `{ code: 200, msg: "success", data: T }`. Non-200 codes are rejected by the interceptor.
 
 ### State Management
@@ -34,11 +34,17 @@ Pinia stores in `src/store/modules/`:
 - **cart** — Cart badge count, synced via API.
 - **app** — Global UI state.
 
+### Composables
+
+[src/composables/](src/composables/) — Reusable composition functions:
+- **useChatWebSocket** — WebSocket connection management for AI chat. Auto-reconnects on disconnect (3s delay). Connects via `ws://host:8086/ws/chat/{sessionId}` in dev (direct to aichat service), or through gateway in production.
+
 ### Routing & Guards
 
 [src/router/index.ts](src/router/index.ts) — Two layouts:
-- **DefaultLayout** — Public storefront (header + footer). Children: home, product detail, category, cart, orders, user center.
-- **AdminLayout** — Admin panel (collapsible sidebar + breadcrumb). Children: dashboard, products, orders, users.
+- **DefaultLayout** — Public storefront (header + footer). Children: home, product detail, category, cart, orders, user center, sign-in, distribution.
+- **AdminLayout** — Admin panel (collapsible sidebar + breadcrumb). Children: dashboard, products, orders, users, refunds, categories, backgrounds, distributors, commission management, withdrawal audit.
+- **Chat** — Full-screen AI customer service (no layout wrapper).
 
 Route meta controls access:
 - `requiresAuth` — Must have token in localStorage.
@@ -70,9 +76,13 @@ All requests go through the gateway (`/api`). The gateway strips `/api` and rout
 | `/api/cart/**` | cart | 8083 |
 | `/api/order/**` | order | 8084 |
 | `/api/pay/**` | pay | 8085 |
+| `/api/chat/**` | aichat | 8086 |
 | `/api/admin/**` | admin | 8087 |
+| `/api/distribution/**` | distribution | 8089 |
 
 Product service controllers use `/product/` prefix (e.g., `@RequestMapping("/product/spu")`). Gateway applies `StripPrefix=1` to `/api/product/**` so `/api/product/spu/list` → `/product/spu/list`.
+
+WebSocket for AI chat bypasses the gateway in dev mode (direct to port 8086).
 
 ### TypeScript Config
 
